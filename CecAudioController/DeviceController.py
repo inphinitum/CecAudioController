@@ -27,14 +27,17 @@
 import cec
 from threading import Timer
 
+
 class DeviceController:
     AUDIO_LOGICAL_ADDRESS = 5
-
     _cecConfig            = cec.libcec_configuration()
     _cecLib               = None
     _is_power_on          = None
     _standby_timer        = None
 
+    # __init__(self)
+    #
+    # Default constructor.
     def __init__(self):
         self.set_configuration()
 
