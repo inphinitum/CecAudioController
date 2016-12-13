@@ -22,9 +22,10 @@
 # Author: Javier Martinez <javi@flamingalah.net>
 
 import argparse
-from CecAudioController import ConfigOptions
-from CecAudioController import DeviceController
-from CecAudioController import EventHandler
+import CecAudioController.config_options
+import CecAudioController.device_controller
+import CecAudioController.event_handler
+
 
 if __name__ == '__main__':
     power_on = False
@@ -36,7 +37,7 @@ if __name__ == '__main__':
     group.add_argument("-power_on", action="store_false")
     group.add_argument("-standby", action="store_false")
     group.add_argument("-event_listener", action="store_false")
-    arguments = parser.parse_args([])
+    arguments = parser.parse_args()
 
     # Initialize CEC stuff and listen for events if OK
     controller = DeviceController()
@@ -47,7 +48,7 @@ if __name__ == '__main__':
             controller.standby()
         else:
             # Gather configuration options
-            config = ConfigOptions()
+            config = CecAudioController.config_options()
             config.read_from_file()
 
             print("Initialization OK, listening for events on " + config.REST_URL)
