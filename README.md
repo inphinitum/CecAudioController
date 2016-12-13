@@ -1,1 +1,1 @@
-# ctrl-receiver-libcec
+# cec_audio_controller

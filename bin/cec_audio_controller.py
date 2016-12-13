@@ -1,17 +1,17 @@
-# This file is part of CecAudioController.
+# This file is part of cec_audio_controller.
 #
-# CecAudioController is free software: you can redistribute it and/or modify
+# cec_audio_controller is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# CecAudioController is distributed in the hope that it will be useful,
+# cec_audio_controller is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with CecAudioController.  If not, see <http://www.gnu.org/licenses/>.
+# along with cec_audio_controller.  If not, see <http://www.gnu.org/licenses/>.
 
 
 # This file provides a Python script to control a device via HDMI-CEC based
@@ -22,9 +22,9 @@
 # Author: Javier Martinez <javi@flamingalah.net>
 
 import argparse
-import CecAudioController.config_options
-import CecAudioController.device_controller
-import CecAudioController.event_handler
+import cec_audio_controller.config_options
+import cec_audio_controller.device_controller
+import cec_audio_controller.event_handler
 
 
 if __name__ == '__main__':
@@ -48,7 +48,7 @@ if __name__ == '__main__':
             controller.standby()
         else:
             # Gather configuration options
-            config = CecAudioController.config_options()
+            config = cec_audio_controller.config_options()
             config.read_from_file()
 
             print("Initialization OK, listening for events on " + config.REST_URL)
