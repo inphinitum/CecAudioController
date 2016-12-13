@@ -1,19 +1,17 @@
-# DeviceController.py
+# This file is part of CecAudioController.
 #
-# Copyright (C) 2016 Javier Martinez <javi@flamingalah.net>
-#
-# This program is free software: you can redistribute it and/or modify
+# CecAudioController is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
+# CecAudioController is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MECHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>.
+# along with CecAudioController.  If not, see <http://www.gnu.org/licenses/>.
 
 #
 # Depends on libcec <https://github.com/Pulse-Eight/libcec>
@@ -34,6 +32,7 @@ class DeviceController:
     _cecLib               = None
     _is_power_on          = None
     _standby_timer        = None
+    _config_params        = None
 
     # __init__(self)
     #
@@ -96,15 +95,15 @@ class DeviceController:
         str_log = "Audio device in CEC bus\n=======================\n"
         global AUDIO_LOGICAL_ADDRESS
 
-        if devices.IsSet(config.AUDIO_LOGICAL_ADDRESS):
-            vendorId        = self._cecLib.GetDeviceVendorId(config.AUDIO_LOGICAL_ADDRESS)
-            physicalAddress = self._cecLib.GetDevicePhysicalAddress(config.AUDIO_LOGICAL_ADDRESS)
-            active          = self._cecLib.IsActiveSource(config.AUDIO_LOGICAL_ADDRESS)
-            cecVersion      = self._cecLib.GetDeviceCecVersion(config.AUDIO_LOGICAL_ADDRESS)
-            power           = self._cecLib.GetDevicePowerStatus(config.AUDIO_LOGICAL_ADDRESS)
-            osdName         = self._cecLib.GetDeviceOSDName(config.AUDIO_LOGICAL_ADDRESS)
-            str_log += "device #" + str(config.AUDIO_LOGICAL_ADDRESS) +":     "
-            str_log += self._cecLib.LogicalAddressToString(config.AUDIO_LOGICAL_ADDRESS)  + "\n"
+        if devices.IsSet(self._config_params.AUDIO_LOGICAL_ADDRESS):
+            vendorId        = self._cecLib.GetDeviceVendorId(self._config_params.AUDIO_LOGICAL_ADDRESS)
+            physicalAddress = self._cecLib.GetDevicePhysicalAddress(self._config_params.AUDIO_LOGICAL_ADDRESS)
+            active          = self._cecLib.IsActiveSource(self._config_params.AUDIO_LOGICAL_ADDRESS)
+            cecVersion      = self._cecLib.GetDeviceCecVersion(self._config_params.AUDIO_LOGICAL_ADDRESS)
+            power           = self._cecLib.GetDevicePowerStatus(self._config_params.AUDIO_LOGICAL_ADDRESS)
+            osdName         = self._cecLib.GetDeviceOSDName(self._config_params.AUDIO_LOGICAL_ADDRESS)
+            str_log += "device #" + str(self._config_params.AUDIO_LOGICAL_ADDRESS) + ":     "
+            str_log += self._cecLib.LogicalAddressToString(self._config_params.AUDIO_LOGICAL_ADDRESS) + "\n"
             str_log += "address:       " + str(physicalAddress) + "\n"
             str_log += "active source: " + str(active) + "\n"
             str_log += "vendor:        " + self._cecLib.VendorIdToString(vendorId) + "\n"
@@ -125,7 +124,7 @@ class DeviceController:
     # Powers on the receiver immediately and cancels any ongoing power off timer
     def power_on(self):
         print("Power ON requested")
-        self._cecLib.PowerOnDevices(config.AUDIO_LOGICAL_ADDRESS)
+        self._cecLib.PowerOnDevices(self._config_params.AUDIO_LOGICAL_ADDRESS)
         self._is_power_on = True
 
         # If there was a timer, cancel and release.
@@ -139,7 +138,7 @@ class DeviceController:
     # timer
     def standby(self):
         print("STANDBY requested")
-        self._cecLib.StandbyDevices(config.AUDIO_LOGICAL_ADDRESS)
+        self._cecLib.StandbyDevices(self._config_params.AUDIO_LOGICAL_ADDRESS)
         self._is_power_on = False
 
         # If there was a timer, cancel and release.

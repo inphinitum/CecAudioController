@@ -12,3 +12,24 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with CecAudioController.  If not, see <http://www.gnu.org/licenses/>.
+
+class cec():
+    strDeviceName = ""
+    bActivateSource = 0
+    deviceTypes = {}
+    clientVersion = 0
+
+
+    def __init__(self):
+        return
+
+    def libcec_configuration(self):
+        return
+
+class cecLib():
+    def __init__(self):
+        return
+
+    def DetectAdapters(self):
+        return
+
