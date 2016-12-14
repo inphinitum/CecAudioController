@@ -22,9 +22,9 @@
 # Author: Javier Martinez <javi@flamingalah.net>
 
 import argparse
-import cec_audio_controller.config_options
-import cec_audio_controller.device_controller
-import cec_audio_controller.event_handler
+from cec_audio_controller import config_options
+from cec_audio_controller import device_controller
+from cec_audio_controller import event_handler
 
 
 if __name__ == '__main__':
@@ -48,10 +48,10 @@ if __name__ == '__main__':
             controller.standby()
         else:
             # Gather configuration options
-            config = cec_audio_controller.config_options()
+            config = ConfigOptions()
             config.read_from_file()
 
             print("Initialization OK, listening for events on " + config.REST_URL)
-            EventHandler().listen_for_events()
+            EventHandler().listen_for_events(controller, config)
     else:
         print("Initialization NOK, quitting...")

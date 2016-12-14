@@ -34,7 +34,7 @@
 #
 # Author: Javier Martinez <javi@flamingalah.net>
 
-import ConfigParser
+import configparser
 
 
 # class ConfigOptions
@@ -95,7 +95,7 @@ class ConfigOptions:
     # to_string()
     #
     # Returns a string with the current configuration.
-    def to_string(self):
+    def __str__(self):
         ret = "Configuration options\n======================="
         ret += "\nURL:                 " + self.REST_URL
         ret += "\nEvents:              " + self.EVENTS
@@ -104,3 +104,4 @@ class ConfigOptions:
         ret += "\nPB play:             " + str(self.PB_NOTIF_PLAY)
         ret += "\nPB pause:            " + str(self.PB_NOTIF_PAUSE)
         ret += "\nPB active device:    " + str(self.PB_NOTIF_ACTIVE_DEVICE)
+        return ret
