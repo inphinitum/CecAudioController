@@ -53,11 +53,11 @@ and `DeviceControl` about how the device should be controlled.
 `audio_controller` is provided as an example of how the library can be used standalone.
 
 ```bash
-$ audio_controller.py -event_listener
+$ audio_controller -event_listener
 ```
 ```bash
-$ audio_controller.py -power_on
+$ audio_controller -power_on
 ```
 ```bash
-$ audio_controller.py -standby
+$ audio_controller -standby
 ```
