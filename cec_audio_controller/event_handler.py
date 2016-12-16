@@ -35,6 +35,7 @@ class EventHandler:
         :param controller: device_controller that will execute the commands
         :param config: config_options with REST message structure, power off delay...
         """
+
         self._controller = controller
         self._config = config
 
@@ -43,6 +44,8 @@ class EventHandler:
         Listens on the given URL for events and dispatches the type of event
         to the right function for further processing.
         """
+
+
         while True:
             response = requests.get(self._config.REST_URL)
 
