@@ -25,6 +25,26 @@ ev_handler.listen_for_events()
 ev_handler.listen_for_events()
 ```
 
+## Configuration file
+
+The configuration file has the following format:
+```
+[EventServer]
+rest_url=http://localhost:8080/endpoint
+
+[MediaFormat]
+events = "Events"
+pb_notif = "Notification"
+pb_notif_stop = 0
+pb_notif_play = 1
+pb_notif_pause = 2
+pb_notif_active_device = 3
+pb_notif_inactive_device = 4
+
+[DeviceControl]
+power_off_delay_mins = 10
+```
+
 ## audio_controller
 
 `audio_controller` is provided as an example of how the library can be used standalone.
