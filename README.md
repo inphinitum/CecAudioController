@@ -24,11 +24,11 @@ controller.listen_for_events()
 `audio_controller` is provided as an example of how the library can be used standalone.
 
 ```bash
-$ python audio_controller.py -event_listener
+$ audio_controller.py -event_listener
 ```
 ```bash
-$ python audio_controller.py -power_on
+$ audio_controller.py -power_on
 ```
 ```bash
-$ python audio_controller.py -standby
+$ audio_controller.py -standby
 ```
