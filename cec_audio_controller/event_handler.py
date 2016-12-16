@@ -18,8 +18,6 @@ along with cec_audio_controller.  If not, see <http://www.gnu.org/licenses/>.
 This file provides a Python script to control a device via HDMI-CEC based
 on events published via http
 
-Depends on libcec <https://github.com/Pulse-Eight/libcec>
-
 Author: Javier Martinez <javi@flamingalah.net>
 """
 

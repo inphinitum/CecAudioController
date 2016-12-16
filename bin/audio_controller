@@ -19,19 +19,17 @@ along with cec_audio_controller.  If not, see <http://www.gnu.org/licenses/>.
 This file provides a Python script to control a device via HDMI-CEC based
 on events published via http
 
-Depends on libcec <https://github.com/Pulse-Eight/libcec>
-
 Author: Javier Martinez <javi@flamingalah.net>
 """
 
+import argparse
+
+from cec_audio_controller import config_options
+from cec_audio_controller import device_controller
+from cec_audio_controller import event_handler
+
 
 if __name__ == "__main__":
-    import argparse
-    import cec_audio_controller
-    from cec_audio_controller import config_options
-    from cec_audio_controller import device_controller
-    from cec_audio_controller import event_handler
-
     power_on = False
     standby = False
     event_listener = False
@@ -44,19 +42,17 @@ if __name__ == "__main__":
     arguments = parser.parse_args()
 
     # Initialize CEC stuff and listen for events if OK
-    try:
-        controller = DeviceController()
+    controller = device_controller.DeviceController()
 
-        if arguments.power_on:
-            controller.power_on()
-        elif arguments.standby:
-            controller.standby()
-        else:
-            # Gather configuration options
-            config = config_options()
-            config.read_from_file()
+    if arguments.power_on:
+        controller.power_on()
+    elif arguments.standby:
+        controller.standby()
+    else:
+        # Gather configuration options
+        config = config_options.ConfigOptions()
+        config.read_from_file()
 
-            print("Initialization OK, listening for events on " + config.REST_URL)
-            event_handler().listen_for_events(controller, config)
-    except CecError:
-        print("Initialization NOK, quitting...")
+        print("Initialization OK, listening for events on " + config.REST_URL)
+        ev_handler = event_handler.EventHandler(controller, config)
+        ev_handler.listen_for_events()

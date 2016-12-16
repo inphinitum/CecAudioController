@@ -22,3 +22,4 @@ Depends on libcec <https://github.com/Pulse-Eight/libcec>
 
 Author: Javier Martinez <javi@flamingalah.net>
 """
+VERSION = '0.1.0'

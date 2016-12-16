@@ -16,7 +16,13 @@ controller.standby()
 ```
 ```python
 controller = device_controller()
-controller.listen_for_events()
+
+config = config_options.ConfigOptions()
+config.read_from_file()
+
+ev_handler = event_handler.EventHandler(controller, config)
+ev_handler.listen_for_events()
+ev_handler.listen_for_events()
 ```
 
 ## audio_controller
