@@ -45,6 +45,9 @@ pb_notif_inactive_device = 4
 power_off_delay_mins = 10
 ```
 
+`EventServer` holds info about the REST endpoint, `MediaFormat` about the REST API message format,
+and `DeviceControl` about how the device should be controlled.
+
 ## audio_controller
 
 `audio_controller` is provided as an example of how the library can be used standalone.
