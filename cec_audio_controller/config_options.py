@@ -1,48 +1,51 @@
-# This file is part of cec_audio_controller.
-#
-# cec_audio_controller is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# cec_audio_controller is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with cec_audio_controller.  If not, see <http://www.gnu.org/licenses/>.
+"""
+This file is part of cec_audio_controller.
+
+cec_audio_controller is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+cec_audio_controller is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with cec_audio_controller.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# This python file reads configuration from config.ini and holds for use.
-#
-# File structure (and example values):
-#     [EventServer]
-#     rest_url=http://localhost:8080/endpoint
-#
-#     [MediaFormat]
-#     events = "Events"
-#     pb_notif = "Notification"
-#     pb_notif_stop = 0
-#     pb_notif_play = 1
-#     pb_notif_pause = 2
-#     pb_notif_active_device = 3
-#     pb_notif_inactive_device = 4
-#
-#     [DeviceControl]
-#     power_off_delay_mins = 10
-#
-# Author: Javier Martinez <javi@flamingalah.net>
+This file provides a Python script to control a device via HDMI-CEC based
+on events published via http
+
+Depends on libcec <https://github.com/Pulse-Eight/libcec>
+
+Author: Javier Martinez <javi@flamingalah.net>
+"""
 
 import configparser
 
-
-# class ConfigOptions
-#
-# Handles configuration options, including reading from disk (config.ini)
 class ConfigOptions:
+    """
+    Handles configuration options, including reading from disk (config.ini)
 
-    # Definitions
+    File structure (and example values):
+    [EventServer]
+    rest_url=http://localhost:8080/endpoint
+
+    [MediaFormat]
+    events = "Events"
+    pb_notif = "Notification"
+    pb_notif_stop = 0
+    pb_notif_play = 1
+    pb_notif_pause = 2
+    pb_notif_active_device = 3
+    pb_notif_inactive_device = 4
+
+    [DeviceControl]
+    power_off_delay_mins = 10
+    """
+
     REST_URL                 = ""
     REST_SUCCESS_CODE        = 200      # Standard HTTP success response code
     EVENTS                   = ""
@@ -54,17 +57,12 @@ class ConfigOptions:
     PB_NOTIF_INACTIVE_DEVICE = -1
     POWER_OFF_DELAY_MINS     = 10
 
-    # __init__(self)
-    #
-    # Default constructor
-    def __init__(self):
-        return
-
-    # read_from_file()
-    #
-    # Reads from config.ini in the same directory the necessary configuration params.
     def read_from_file(self):
-        config = ConfigParser.SafeConfigParser()
+        """
+        Reads from config.ini in the same directory the necessary configuration params.
+        """
+
+        config = configparser.ConfigParser()
         config.optionxform = str
         config.read("config.ini")
 
@@ -92,10 +90,12 @@ class ConfigOptions:
         if config.has_option("DeviceControl", "power_off_delay_mins"):
             self.POWER_OFF_DELAY_MINS = config.getint("DeviceControl", "power_off_delay_mins")
 
-    # to_string()
-    #
-    # Returns a string with the current configuration.
     def __str__(self):
+        """
+        Returns a string with the current configuration.
+        :return: str
+        """
+
         ret = "Configuration options\n======================="
         ret += "\nURL:                 " + self.REST_URL
         ret += "\nEvents:              " + self.EVENTS
