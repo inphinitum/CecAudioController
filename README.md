@@ -4,7 +4,7 @@ Controller of audio devices that are connected via HDMI and CEC-compatible.
 
 Can listen to events via a REST API, or be called with specific commands.
 
-## Example
+## Examples
 
 ```python
 controller = device_controller()

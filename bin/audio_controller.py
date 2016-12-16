@@ -42,18 +42,19 @@ if __name__ == '__main__':
     arguments = parser.parse_args()
 
     # Initialize CEC stuff and listen for events if OK
-    controller = DeviceController()
-    if controller.init_CEC():
+    try:
+        controller = DeviceController()
+
         if arguments.power_on:
             controller.power_on()
         elif arguments.standby:
             controller.standby()
         else:
             # Gather configuration options
-            config = ConfigOptions()
+            config = config_options()
             config.read_from_file()
 
             print("Initialization OK, listening for events on " + config.REST_URL)
-            EventHandler().listen_for_events(controller, config)
-    else:
+            event_handler().listen_for_events(controller, config)
+    except CecError:
         print("Initialization NOK, quitting...")

@@ -23,4 +23,10 @@ Depends on libcec <https://github.com/Pulse-Eight/libcec>
 Author: Javier Martinez <javi@flamingalah.net>
 """
 
+import unittest
+import unittest.mock
 
+
+class DeviceHandlerTest(unittest.TestCase):
+    def setUp(self):
+        return

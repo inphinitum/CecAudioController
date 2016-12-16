@@ -26,18 +26,20 @@ Author: Javier Martinez <javi@flamingalah.net>
 import subprocess
 from threading import Timer
 
+
 class CecError(Exception):
     """Exception class for Cec errors.
     Attributes:
         message -- explanation of the error
     """
     def __init__(self, message):
+        self.message = message
+
 
 class DeviceController:
     """
     Controller of devices that are cec-compatible.
     """
-
 
     _AUDIO_LOGICAL_ADDRESS = 5
     _cec_process           = None
