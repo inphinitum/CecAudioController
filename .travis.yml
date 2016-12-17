@@ -1,8 +1,9 @@
 language: python
 python:
   - "3.5"
-# command to install dependencies
-script: python tests/cec_audio_controller_test.py
+
+# Unit tests
+script: python setup.py nosetests
 branches:
   only:
     - master
