@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 import cec_audio_controller
 
@@ -16,11 +16,11 @@ setup(
     name=NAME,
     version=VERSION,
     description="Audio device controller via HDMI CEC",
-    author="Javier Martinez",
-    author_email="javi@flamingalah.net",
+    author=["Javier Martinez"],
+    author_email=["javi@flamingalah.net"],
     license="Apache 2.0",
-    packages="cec_audio_controller",
-    scripts="bin/audio_controller",
+    packages=find_packages(),
+    scripts=["bin/audio_controller"],
     test_suite="nose.collector",
     requires=required,
     setup_requires=["nose>=1.0"],
