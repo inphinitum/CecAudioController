@@ -139,5 +139,6 @@ class DeviceController:
         # If there's already a timer, cancel it before starting a new one.
         if self._standby_timer is not None:
             self._standby_timer.cancel()
-            self._standby_timer = Timer(seconds, self.standby)
-            self._standby_timer.start()
+
+        self._standby_timer = Timer(seconds, self.standby)
+        self._standby_timer.start()
