@@ -19,6 +19,9 @@ from unittest.mock import Mock
 
 
 class DeviceHandlerTest(unittest.TestCase):
+    """
+    Unit tests for the DeviceHandler class in cec_audio_controller.
+    """
 
     def test_power_on(self):
         """
@@ -139,3 +142,14 @@ class DeviceHandlerTest(unittest.TestCase):
         mock_popen.communicate.assert_called_once_with(input="lad", timeout=15)
 
         return controller
+
+class EventHandlerTest(unittest.TestCase):
+    """
+    Unit tests for the EventHandler class in cec_audio_controller.
+    """
+
+    def setUp(self):
+        self.controller = Mock()
+        self.config = Mock()
+        self.ev_handler = EventHandler(self.controller, self.config)
+
