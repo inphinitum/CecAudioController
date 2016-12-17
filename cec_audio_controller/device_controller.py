@@ -40,16 +40,23 @@ class DeviceController:
 
     def __init__(self):
         """
-        Default constructor.
+            Default constructor.
 
-        Makes sure everything is initialized to control the audio device via CEC.
+            Raises:
+                CecError -- if the cec-client is not found in the system.
+        """
+        self._initialize_cec()
 
-        Raises:
-            CecError -- if the cec-client is not found in the system.
+    def _initialize_cec(self):
+        """
+            Makes sure everything is initialized to control the audio device via CEC.
+
+            Raises:
+                CecError -- if the cec-client is not found in the system.
         """
 
         try:
-            _cec_process = subprocess.Popen(["cec-client"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            self._cec_process = subprocess.Popen(["cec-client"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
             self._init_audio_device()
         except OSError:
             raise CecError("cec-client not found.")
@@ -63,7 +70,7 @@ class DeviceController:
         """
 
         try:
-            output = self._cec_process.communicate(input="lad", timeout=15)
+            output, error = self._cec_process.communicate(input="lad", timeout=15)
 
             if "logical address 5" not in output:
                 raise CecError("cec-client does not find audio device.")
@@ -86,13 +93,13 @@ class DeviceController:
             self._cec_process.communicate(input="on 5", timeout=15)
 
             # If there was a timer, cancel and release.
-            if isinstance(self._standby_timer, Timer) and self._standby_timer.is_alive():
+            if self._standby_timer is not None:
                 self._standby_timer.cancel()
+                self._standby_timer = None
 
         except subprocess.TimeoutExpired:
             self._cec_process.kill()
             raise CecError("cec-client unresponsive, killed.")
-
 
     def standby(self):
         """
@@ -105,11 +112,12 @@ class DeviceController:
         print("STANDBY requested")
 
         try:
-            self._cec_process.communicate(input="on 5", timeout=15)
+            self._cec_process.communicate(input="standby 5", timeout=15)
 
             # If there was a timer, cancel and release.
-            if isinstance(self._standby_timer, Timer) and self._standby_timer.is_alive():
+            if self._standby_timer is not None:
                 self._standby_timer.cancel()
+                self._standby_timer = None
 
         except subprocess.TimeoutExpired:
             self._cec_process.kill()
@@ -129,7 +137,7 @@ class DeviceController:
         print("Delayed STANDBY requested")
 
         # If there's already a timer, cancel it before starting a new one.
-        if isinstance(self._standby_timer, Timer) and self._standby_timer.is_alive():
+        if self._standby_timer is not None:
             self._standby_timer.cancel()
             self._standby_timer = Timer(seconds, self.standby)
             self._standby_timer.start()
