@@ -1,5 +1,5 @@
 """
-Copyright 2016 Javier Martínez <javi@flamingalah.net>
+Copyright 2016 Javier Martinez <javi@flamingalah.net>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -143,6 +143,7 @@ class DeviceHandlerTest(unittest.TestCase):
 
         return controller
 
+
 class EventHandlerTest(unittest.TestCase):
     """
     Unit tests for the EventHandler class in cec_audio_controller.
@@ -151,5 +152,6 @@ class EventHandlerTest(unittest.TestCase):
     def setUp(self):
         self.controller = Mock()
         self.config = Mock()
-        self.ev_handler = EventHandler(self.controller, self.config)
 
+        from cec_audio_controller.event_handler import EventHandler
+        self.ev_handler = EventHandler(self.controller, self.config)
