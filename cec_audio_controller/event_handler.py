@@ -38,7 +38,6 @@ class EventHandler:
         to the right function for further processing.
         """
 
-
         while True:
             response = requests.get(self._config.REST_URL)
 
@@ -48,7 +47,7 @@ class EventHandler:
                 if self._config.EVENTS in json_data:
                     for event in json_data[self._config.EVENTS]:
                         if self._config.PB_NOTIF in event.keys():
-                            self.process_playback_event(event)
+                            self._process_playback_event(event)
 
     def _process_playback_event(self, event):
         """
