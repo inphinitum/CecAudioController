@@ -19,22 +19,6 @@ import configparser
 class ConfigOptions:
     """
     Handles configuration options, including reading from disk (config.ini)
-
-    File structure (and example values):
-    [EventServer]
-    rest_url=http://localhost:8080/endpoint
-
-    [MediaFormat]
-    events = "Events"
-    pb_notif = "Notification"
-    pb_notif_stop = 0
-    pb_notif_play = 1
-    pb_notif_pause = 2
-    pb_notif_active_device = 3
-    pb_notif_inactive_device = 4
-
-    [DeviceControl]
-    power_off_delay_mins = 10
     """
 
     REST_URL                 = ""
