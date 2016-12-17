@@ -25,14 +25,14 @@ class DeviceHandlerTest(unittest.TestCase):
 
     @unittest.mock.patch("subprocess.Popen", autospec=True)
     def test_power_on(self, mock_popen):
+        """
+            Test simple command power_on.
 
-        mock_popen.return_value = mock_popen
-        mock_popen.communicate.return_value = ("logical address 5", "")
+        :param mock_popen: the mock object for Popen
+        :return: nothing
+        """
 
-        # Control the cec-client is invoked properly, audio device searched and found
-        controller = DeviceController()
-        mock_popen.assert_called_with(["cec-client"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        mock_popen.communicate.assert_called_with(input="lad", timeout=15)
+        controller = self.init_controller(mock_popen)
 
         # Control that the command to power on the audio device is sent, and timer not cancelled
         mock_popen.communicate.return_value = ("", "")
@@ -42,6 +42,28 @@ class DeviceHandlerTest(unittest.TestCase):
 
     @unittest.mock.patch("subprocess.Popen", autospec=True)
     def test_standby(self, mock_popen):
+        """
+            Test simple command standby.
+
+        :param mock_popen: the mock object for Popen
+        :return: nothing
+        """
+
+        controller = self.init_controller(mock_popen)
+
+        # Control that the command to standby the audio device is sent, and timer not cancelled
+        mock_popen.communicate.return_value = ("", "")
+        controller.standby()
+        mock_popen.communicate.assert_called_with(input="standby 5", timeout=15)
+        mock_popen.kill.assert_not_called()
+
+    def init_controller(self, mock_popen):
+        """
+            Boilerplate code to initialize the controller.
+
+        :param mock_popen: the mock object for Popen
+        :return: the newly created controller
+        """
         mock_popen.return_value = mock_popen
         mock_popen.communicate.return_value = ("logical address 5", "")
 
@@ -50,9 +72,4 @@ class DeviceHandlerTest(unittest.TestCase):
         mock_popen.assert_called_with(["cec-client"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         mock_popen.communicate.assert_called_with(input="lad", timeout=15)
 
-        # Control that the command to power on the audio device is sent, and timer not cancelled
-        mock_popen.communicate.return_value = ("", "")
-        controller.standby()
-        mock_popen.communicate.assert_called_with(input="standby 5", timeout=15)
-        mock_popen.kill.assert_not_called()
-
+        return controller
