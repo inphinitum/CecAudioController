@@ -90,12 +90,12 @@ class DeviceController:
         print("Power ON requested")
 
         try:
-            self._cec_process.communicate(input="on 5", timeout=15)
-
             # If there was a timer, cancel and release.
             if self._standby_timer is not None:
                 self._standby_timer.cancel()
                 self._standby_timer = None
+
+            self._cec_process.communicate(input="on 5", timeout=15)
 
         except subprocess.TimeoutExpired:
             self._cec_process.kill()
@@ -112,12 +112,12 @@ class DeviceController:
         print("STANDBY requested")
 
         try:
-            self._cec_process.communicate(input="standby 5", timeout=15)
-
             # If there was a timer, cancel and release.
             if self._standby_timer is not None:
                 self._standby_timer.cancel()
                 self._standby_timer = None
+
+            self._cec_process.communicate(input="standby 5", timeout=15)
 
         except subprocess.TimeoutExpired:
             self._cec_process.kill()
