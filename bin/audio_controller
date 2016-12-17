@@ -36,6 +36,7 @@ if __name__ == "__main__":
 
     # Initialize CEC stuff and listen for events if OK
     controller = device_controller.DeviceController()
+    controller.initialize()
 
     if arguments.power_on:
         controller.power_on()
