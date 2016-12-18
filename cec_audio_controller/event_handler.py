@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import requests
+import sys
 
 
 class EventHandler:
@@ -36,18 +37,35 @@ class EventHandler:
         """
         Listens on the given URL for events and dispatches the type of event
         to the right function for further processing.
+
+        :return: nothing
         """
 
         while True:
             response = requests.get(self._config.REST_URL)
 
             if response.status_code == self._config.REST_SUCCESS_CODE:
-                json_data = response.json()
+                try:
+                    json_data = response.json()
+                    self._process_json_response(json_data)
+                except ValueError:
+                    sys.stderr.write("Response from " + self._config.REST_URL + " could not be decoded as JSON.")
 
-                if self._config.EVENTS in json_data:
-                    for event in json_data[self._config.EVENTS]:
-                        if self._config.PB_NOTIF in event.keys():
-                            self._process_playback_event(event)
+    def _process_json_response(self, json_data):
+        """
+        Parses the received json as specified in the config,
+        and calls for further process in case of playback events.
+
+        :param json_data: Received response in json format.
+        :return: nothing.
+        """
+
+        if self._config.EVENTS in json_data:
+            for event in json_data[self._config.EVENTS]:
+                if self._config.PB_NOTIF in event.keys():
+                    self._process_playback_event(event)
+        else:
+            sys.stderr.write("JSON response malformed.")
 
     def _process_playback_event(self, event):
         """
@@ -55,6 +73,7 @@ class EventHandler:
         following structure in events: {"Notification": int}.
 
         :param event: type of event to process
+        :return: nothing
         """
 
         n_type = event[self._config.PB_NOTIF]
@@ -67,3 +86,5 @@ class EventHandler:
             self._controller.delayed_standby(5)
         elif n_type == self._config.PB_NOTIF_PAUSE:
             self._controller.delayed_standby(self._config.POWER_OFF_DELAY_MINS * 60)
+        else:
+            sys.stdout.write("Type of playback event not recognised.")
