@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/inphinitum/cec_audio_controller.svg?branch=master)](https://travis-ci.org/inphinitum/cec_audio_controller)
 [![codecov](https://codecov.io/gh/inphinitum/cec_audio_controller/branch/master/graph/badge.svg)](https://codecov.io/gh/inphinitum/cec_audio_controller)
+[![License](https://img.shields.io/github/license/inphinitum/cec_audio_controller.svg)](LICENSE)
 
 Controller of audio devices that are connected via HDMI and CEC-compatible.
 
