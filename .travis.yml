@@ -7,7 +7,7 @@ before_install:
   - pip install codecov
 
 script:
-  - nosetests
+  - nosetests --with-coverage
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
