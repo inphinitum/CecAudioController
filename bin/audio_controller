@@ -49,4 +49,5 @@ if __name__ == "__main__":
 
         print("Initialization OK, listening for events on " + config.REST_URL)
         ev_handler = event_handler.EventHandler(controller, config)
-        ev_handler.listen_for_events()
+        while True:
+            ev_handler.listen_for_events()
