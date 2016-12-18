@@ -5,6 +5,7 @@ python:
 
 before_install:
   - pip install codecov
+  - pip install coverage
 
 script:
   - nosetests
