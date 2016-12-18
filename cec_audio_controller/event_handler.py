@@ -43,6 +43,7 @@ class EventHandler:
 
         :param controller: DeviceController to be used to call commands.
         :param config: ConfigOptions holding info on how json events are formed etc.
+        :return: None
         """
 
         self._controller = controller
@@ -53,18 +54,23 @@ class EventHandler:
         Listens on the given URL for events and dispatches the type of event
         to the right function for further processing.
 
-        :return: nothing
+        Processes one response at a time. If you want to listen indefinetly you
+        must loop outside.
+
+        :return: None
         """
 
-        while True:
-            response = requests.get(self._config.REST_URL)
+        response = requests.get(self._config.REST_URL)
+        print(response.status_code == self._config.REST_SUCCESS_CODE)
 
-            if response.status_code == self._config.REST_SUCCESS_CODE:
-                try:
-                    json_data = response.json()
-                    self.process_json_response(json_data)
-                except ValueError:
-                    raise EventError("Response from " + self._config.REST_URL + " could not be decoded as JSON.")
+        if response.status_code == self._config.REST_SUCCESS_CODE:
+            try:
+                json_data = response.json()
+                self.process_json_response(json_data)
+            except ValueError:
+                raise EventError("Response from " + self._config.REST_URL + " could not be decoded as JSON.")
+        else:
+            raise EventError(self._config.REST_URL + " does not respond: Status code " + str(response.status_code))
 
     def process_json_response(self, json_data):
         """
@@ -72,7 +78,7 @@ class EventHandler:
         and calls for further process in case of playback events.
 
         :param json_data: Received response in json format.
-        :return: nothing.
+        :return: None
         """
 
         if self._config.EVENTS in json_data:
@@ -88,7 +94,7 @@ class EventHandler:
         following structure: {str: int}.
 
         :param event: type of event to process
-        :return: nothing
+        :return: None
         """
 
         n_type = event[self._config.PB_NOTIF]

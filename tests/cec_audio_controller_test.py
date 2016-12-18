@@ -15,9 +15,9 @@ limitations under the License.
 """
 
 import unittest
+from unittest.mock import patch
 from unittest.mock import Mock
 
-from cec_audio_controller.event_handler import EventHandler
 from cec_audio_controller.event_handler import EventError
 
 
@@ -35,6 +35,9 @@ class DeviceHandlerTest(unittest.TestCase):
         :param mock_popen: the mock object for Popen
         :return: None
         """
+
+        super(DeviceHandlerTest, self).setUp()
+
         mock_popen.return_value = mock_popen
         mock_popen.communicate.return_value = ("logical address 5", "")
         mock_timer.return_value = mock_timer
@@ -45,6 +48,15 @@ class DeviceHandlerTest(unittest.TestCase):
         self.controller = DeviceController()
         mock_popen.assert_called_once_with(["cec-client"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         mock_popen.communicate.assert_called_once_with(input="lad", timeout=15)
+
+    def tearDown(self):
+        """
+        Undo setUp, leave things clean.
+
+        :return: None
+        """
+
+        self.controller._cleanup()
 
     def test_power_on(self):
         """
@@ -147,6 +159,9 @@ class EventHandlerTest(unittest.TestCase):
     def setUp(self):
         self.mock_controller                      = Mock()
         self.mock_config                          = Mock()
+        self.mock_config.REST_URL                 = "http://localhost:4444/test"
+        self.mock_config.REST_SUCCESS_CODE        = 200
+        self.mock_config.REST_NOT_FOUND_CODE      = 404
         self.mock_config.EVENTS                   = "Events"
         self.mock_config.PB_NOTIF                 = "Notification"
         self.mock_config.PB_NOTIF_STOP            = 0
@@ -156,6 +171,7 @@ class EventHandlerTest(unittest.TestCase):
         self.mock_config.PB_NOTIF_INACTIVE_DEVICE = 4
         self.mock_config.POWER_OFF_DELAY_MINS     = 10
 
+        from cec_audio_controller.event_handler import EventHandler
         self.ev_handler = EventHandler(self.mock_controller, self.mock_config)
 
     def test_incorrect_response_format(self):
@@ -247,3 +263,31 @@ class EventHandlerTest(unittest.TestCase):
         self.mock_controller.standby.assert_not_called()
         self.mock_controller.delayed_standby.assert_not_called()
         self.mock_controller.reset_mock()
+
+    def test_listen_for_events_200(self):
+        """
+        Tests the event listening functionality in the handler, both successful and unsuccessful.
+
+        :return: None
+        """
+
+        with patch("requests.get") as get_mock:
+            self.mock_requests_get = get_mock
+            self.mock_requests_get.return_value.status_code = self.mock_config.REST_SUCCESS_CODE
+            with self.assertRaises(EventError) as context:
+                self.ev_handler.listen_for_events()
+            self.assertTrue("JSON response malformed." in str(context.exception))
+
+    def test_listen_for_events_400(self):
+        """
+        Tests that the event listener works as intended in case there's a problem reaching the endpoint.
+
+        :return: None
+        """
+
+        with patch("requests.get") as get_mock:
+            self.mock_requests_get = get_mock
+            self.mock_requests_get.return_value.status_code = self.mock_config.REST_NOT_FOUND_CODE
+            with self.assertRaises(EventError) as context:
+                self.ev_handler.listen_for_events()
+            self.assertTrue("does not respond: Status code" in str(context.exception))
