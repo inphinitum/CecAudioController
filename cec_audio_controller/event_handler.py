@@ -18,16 +18,31 @@ import requests
 import sys
 
 
+class EventError(Exception):
+    """Exception class for event handling errors.
+
+    Attributes:
+        message -- explanation of the error
+    """
+    def __init__(self, message):
+        self.message = message
+
+
 class EventHandler:
+    """
+    Handler of events. Can listen to an REST endpoint, process the received events
+    and invoke the appropriate commands on a CecController object
+    """
+
     _controller = None
     _config = None
 
     def __init__(self, controller, config):
         """
-        Default constructor
+        Constructor.
 
-        :param controller: device_controller that will execute the commands
-        :param config: config_options with REST message structure, power off delay...
+        :param controller: DeviceController to be used to call commands.
+        :param config: ConfigOptions holding info on how json events are formed etc.
         """
 
         self._controller = controller
@@ -47,11 +62,11 @@ class EventHandler:
             if response.status_code == self._config.REST_SUCCESS_CODE:
                 try:
                     json_data = response.json()
-                    self._process_json_response(json_data)
+                    self.process_json_response(json_data)
                 except ValueError:
-                    sys.stderr.write("Response from " + self._config.REST_URL + " could not be decoded as JSON.")
+                    raise EventError("Response from " + self._config.REST_URL + " could not be decoded as JSON.")
 
-    def _process_json_response(self, json_data):
+    def process_json_response(self, json_data):
         """
         Parses the received json as specified in the config,
         and calls for further process in case of playback events.
@@ -63,14 +78,14 @@ class EventHandler:
         if self._config.EVENTS in json_data:
             for event in json_data[self._config.EVENTS]:
                 if self._config.PB_NOTIF in event.keys():
-                    self._process_playback_event(event)
+                    self._process_single_playback_event(event)
         else:
-            sys.stderr.write("JSON response malformed.")
+            raise EventError("JSON response malformed.")
 
-    def _process_playback_event(self, event):
+    def _process_single_playback_event(self, event):
         """
         Processes the given playback event and triggers the respective command. Expects the
-        following structure in events: {"Notification": int}.
+        following structure: {str: int}.
 
         :param event: type of event to process
         :return: nothing
@@ -83,7 +98,7 @@ class EventHandler:
         elif n_type == self._config.PB_NOTIF_STOP:
             self._controller.standby()
         elif n_type == self._config.PB_NOTIF_INACTIVE_DEVICE:
-            self._controller.delayed_standby(5)
+            self._controller.delayed_standby(self._config.POWER_OFF_DELAY_MINS)     # Seconds in this case
         elif n_type == self._config.PB_NOTIF_PAUSE:
             self._controller.delayed_standby(self._config.POWER_OFF_DELAY_MINS * 60)
         else:
