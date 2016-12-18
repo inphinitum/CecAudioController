@@ -57,7 +57,7 @@ class ConfigOptions:
                 self.PB_NOTIF_PLAY = config.getint("MediaFormat", "pb_notif_play")
             if config.has_option("MediaFormat", "pb_notif_pause"):
                 self.PB_NOTIF_PAUSE = config.getint("MediaFormat", "pb_notif_pause")
-            if config.has_option("MediaFormat", "pb_notif_pause"):
+            if config.has_option("MediaFormat", "pb_notif_active_device"):
                 self.PB_NOTIF_ACTIVE_DEVICE = config.getint("MediaFormat", "pb_notif_active_device")
             if config.has_option("MediaFormat", "pb_notif_inactive_device"):
                 self.PB_NOTIF_INACTIVE_DEVICE = config.getint("MediaFormat", "pb_notif_inactive_device")
