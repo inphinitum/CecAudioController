@@ -8,6 +8,10 @@ Controller of audio devices that are connected via HDMI and CEC-compatible.
 
 Can listen to events via a REST API, or be called with specific commands.
 
+## Dependencies
+This project depends on [libcec](https://github.com/Pulse-Eight/libcec). Due to license incompatibilities
+it can't be distributed together with this project.
+
 ## Examples
 
 ```python
