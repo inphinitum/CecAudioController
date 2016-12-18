@@ -1,5 +1,7 @@
 # cec_audio_controller
 
+[![Build Status](https://travis-ci.org/inphinitum/cec_audio_controller.svg?branch=master)](https://travis-ci.org/inphinitum/cec_audio_controller)
+
 Controller of audio devices that are connected via HDMI and CEC-compatible.
 
 Can listen to events via a REST API, or be called with specific commands.
