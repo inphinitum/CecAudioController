@@ -19,6 +19,8 @@ from unittest.mock import patch
 from unittest.mock import Mock
 
 from cec_audio_controller.event_handler import EventError
+from cec_audio_controller.event_handler import EventHandler
+from cec_audio_controller.config_options import ConfigOptions
 
 
 class DeviceHandlerTest(unittest.TestCase):
@@ -157,6 +159,12 @@ class EventHandlerTest(unittest.TestCase):
     """
 
     def setUp(self):
+        """
+        Initialization for test cases.
+
+        :return: None
+        """
+
         self.mock_controller                      = Mock()
         self.mock_config                          = Mock()
         self.mock_config.REST_URL                 = "http://localhost:4444/test"
@@ -171,7 +179,6 @@ class EventHandlerTest(unittest.TestCase):
         self.mock_config.PB_NOTIF_INACTIVE_DEVICE = 4
         self.mock_config.POWER_OFF_DELAY_MINS     = 10
 
-        from cec_audio_controller.event_handler import EventHandler
         self.ev_handler = EventHandler(self.mock_controller, self.mock_config)
 
     def test_incorrect_response_format(self):
@@ -285,9 +292,63 @@ class EventHandlerTest(unittest.TestCase):
         :return: None
         """
 
-        with patch("requests.get") as get_mock:
-            self.mock_requests_get = get_mock
-            self.mock_requests_get.return_value.status_code = self.mock_config.REST_NOT_FOUND_CODE
+        with patch("requests.get") as mock_get:
+            mock_get.return_value.status_code = self.mock_config.REST_NOT_FOUND_CODE
             with self.assertRaises(EventError) as context:
                 self.ev_handler.listen_for_events()
-            self.assertTrue("does not respond: Status code" in str(context.exception))
+                self.assertTrue("does not respond: Status code" in str(context.exception))
+
+
+class ConfigOptionsTest(unittest.TestCase):
+    """
+    Tests for the ConfigOptions class.
+    """
+
+    def setUp(self):
+        """
+        Initialization for test cases.
+
+        :return: None
+        """
+
+        self.config_options = ConfigOptions()
+
+    def test_read_from_file(self):
+        """
+        Test that all the elements that should be read are read properly from .config.ini
+
+        :return: None
+        """
+
+        with patch("configparser.ConfigParser") as mock_parser:
+            mock_parser.return_value.read.return_value = ["config.ini"]
+            mock_parser.return_value.has_option.side_effect = ["EventServer", "MediaFormat", "MediaFormat",
+                                                               "MediaFormat", "MediaFormat", "MediaFormat",
+                                                               "MediaFormat", "MediaFormat", "DeviceControl"]
+            mock_parser.return_value.get.side_effect = ["http://localhost:5555/ev", "Events", "Notification"]
+            mock_parser.return_value.getint.side_effect = [0, 1, 2, 3, 4, 10]
+
+            self.config_options.read_from_file()
+
+            print(self.config_options)
+
+            self.assertTrue(self.config_options.REST_URL == "http://localhost:5555/ev")
+            self.assertTrue(self.config_options.EVENTS == "Events")
+            self.assertTrue(self.config_options.PB_NOTIF == "Notification")
+            self.assertTrue(self.config_options.PB_NOTIF_STOP == 0)
+            self.assertTrue(self.config_options.PB_NOTIF_PLAY == 1)
+            self.assertTrue(self.config_options.PB_NOTIF_PAUSE == 2)
+            self.assertTrue(self.config_options.PB_NOTIF_ACTIVE_DEVICE == 3)
+            self.assertTrue(self.config_options.PB_NOTIF_INACTIVE_DEVICE == 4)
+            self.assertTrue(self.config_options.POWER_OFF_DELAY_MINS == 10)
+
+    def test_file_not_found(self):
+        """
+        Thest behaviour when config file is not found.
+
+        :return:
+        """
+
+        with self.assertRaises(ValueError) as context:
+            self.config_options.read_from_file()
+        self.assertTrue("Failed to open config.ini" in str(context.exception))
