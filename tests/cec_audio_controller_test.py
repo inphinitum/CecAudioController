@@ -329,8 +329,7 @@ class ConfigOptionsTest(unittest.TestCase):
 
             self.config_options.read_from_file()
 
-            calls = [call("config.ini")]
-            mock_parser.return_value.read.assert_has_calls(calls)
+            mock_parser.return_value.read.assert_called_once_with("config.ini")
 
             calls = [call("EventServer", "rest_url"), call("MediaFormat", "events"), call("MediaFormat", "pb_notif"),
                      call("MediaFormat", "pb_notif_stop"), call("MediaFormat", "pb_notif_play"),
@@ -359,8 +358,7 @@ class ConfigOptionsTest(unittest.TestCase):
 
             self.config_options.read_from_file()
 
-            calls = [call("config.ini")]
-            mock_parser.return_value.read.assert_has_calls(calls)
+            mock_parser.return_value.read.assert_called_once_with("config.ini")
 
             calls = [call("EventServer", "rest_url"), call("MediaFormat", "events"), call("MediaFormat", "pb_notif"),
                      call("MediaFormat", "pb_notif_stop"), call("MediaFormat", "pb_notif_play"),
