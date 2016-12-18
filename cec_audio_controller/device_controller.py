@@ -20,6 +20,7 @@ from threading import Timer
 
 class CecError(Exception):
     """Exception class for Cec errors.
+
     Attributes:
         message -- explanation of the error
     """
@@ -47,6 +48,18 @@ class DeviceController:
         """
         self._initialize_cec()
 
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        Clean up upon destruction.
+
+        :param exc_type:
+        :param exc_val:
+        :param exc_tb:
+        :return: nothing
+        """
+
+        self._cleanup()
+
     def _initialize_cec(self):
         """
             Makes sure everything is initialized to control the audio device via CEC.
@@ -59,7 +72,23 @@ class DeviceController:
             self._cec_process = subprocess.Popen(["cec-client"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
             self._init_audio_device()
         except OSError:
+            self._cec_process.terminate()
             raise CecError("cec-client not found.")
+
+    def _cleanup(self):
+        """
+        Clean up all spawned threads.
+
+        :return: nothing
+        """
+
+        # Stop the thread for the cec-tool
+        if self._cec_process is not None:
+            self._cec_process.terminate()
+
+        # Stop the timer if any
+        if self._standby_timer is not None:
+            self._standby_timer.cancel()
 
     def _init_audio_device(self):
         """
@@ -76,8 +105,7 @@ class DeviceController:
                 raise CecError("cec-client does not find audio device.")
 
         except subprocess.TimeoutExpired:
-            self._cec_process.kill()
-            raise CecError("cec-client unresponsive, killed.")
+            raise CecError("cec-client unresponsive.")
 
     def power_on(self):
         """
