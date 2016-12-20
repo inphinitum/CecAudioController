@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 import subprocess
-from threading import Timer
 
 
 class CecError(Exception):
@@ -168,5 +167,6 @@ class DeviceController:
         if self._standby_timer is not None:
             self._standby_timer.cancel()
 
+        from threading import Timer
         self._standby_timer = Timer(seconds, self.standby)
         self._standby_timer.start()
