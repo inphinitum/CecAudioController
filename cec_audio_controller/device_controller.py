@@ -125,7 +125,7 @@ class DeviceController:
             self._cec_process.communicate(input="on 5", timeout=15)
 
         except subprocess.TimeoutExpired:
-            self._cec_process.kill()
+            self._cec_process.terminate()
             raise CecError("cec-client unresponsive, killed.")
 
     def standby(self):
@@ -147,7 +147,7 @@ class DeviceController:
             self._cec_process.communicate(input="standby 5", timeout=15)
 
         except subprocess.TimeoutExpired:
-            self._cec_process.kill()
+            self._cec_process.terminate()
             raise CecError("cec-client unresponsive, killed.")
 
     def delayed_standby(self, seconds):
