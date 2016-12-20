@@ -146,6 +146,49 @@ class DeviceHandlerTest(unittest.TestCase):
             mock_timer.cancel.assert_called_once_with()
             self.controller._standby_timer.start.assert_called_once_with()
 
+    def test_sequence_1(self):
+        """
+        Test sequence play-delayed_standby-play before timer goes off.
+
+        :return:
+        """
+
+        with patch("threading.Timer") as mock_timer:
+            mock_timer.return_value = mock_timer
+
+            self.controller.power_on()
+            self.controller._cec_process.communicate.assert_called_with(input="on 5", timeout=15)
+
+            self.controller.delayed_standby(10)
+            self.controller._standby_timer.start.assert_called_once_with()
+
+            # Previous delayed_standby() is still active, the timer is cancelled and no cec command is executed.
+            self.controller.power_on()
+            mock_timer.cancel.assert_called_once_with()
+
+    def test_sequence_2(self):
+        """
+        Test sequence play-delayed_standby-standby-play
+
+        :return:
+        """
+
+        with patch("threading.Timer"):
+            self.controller.power_on()
+            self.controller._cec_process.communicate.assert_called_with(input="on 5", timeout=15)
+
+            self.controller.delayed_standby(10)
+            self.controller._standby_timer.start.assert_called_once_with()
+
+            # When timer goes of it calls standby()
+            mock_timer = self.controller._standby_timer
+            self.controller.standby()
+            mock_timer.cancel.assert_called_once_with()
+            self.controller._cec_process.communicate.assert_called_with(input="standby 5", timeout=15)
+
+            self.controller.power_on()
+            self.controller._cec_process.communicate.assert_called_with(input="on 5", timeout=15)
+
 
 class EventHandlerTest(unittest.TestCase):
     """
