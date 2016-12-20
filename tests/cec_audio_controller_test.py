@@ -29,28 +29,24 @@ class DeviceHandlerTest(unittest.TestCase):
     Unit tests for the DeviceHandler class in cec_audio_controller.
     """
 
-    @unittest.mock.patch("threading.Timer", autospec=True)
-    @unittest.mock.patch("subprocess.Popen", autospec=True)
-    def setUp(self, mock_popen, mock_timer):
+    def setUp(self):
         """
         Boilerplate code to initialize the controller.
 
-        :param mock_popen: the mock object for Popen
         :return: None
         """
 
-        super(DeviceHandlerTest, self).setUp()
+        with patch("subprocess.Popen") as mock_popen:
+            mock_popen.return_value = mock_popen
+            mock_popen.communicate.return_value = ("logical address 5", "")
 
-        mock_popen.return_value = mock_popen
-        mock_popen.communicate.return_value = ("logical address 5", "")
-        mock_timer.return_value = mock_timer
+            # Control the cec-client is invoked properly, audio device searched and found
+            import subprocess
+            from cec_audio_controller.device_controller import DeviceController
 
-        # Control the cec-client is invoked properly, audio device searched and found
-        import subprocess
-        from cec_audio_controller.device_controller import DeviceController
-        self.controller = DeviceController()
-        mock_popen.assert_called_once_with(["cec-client"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        mock_popen.communicate.assert_called_once_with(input="lad", timeout=15)
+            self.controller = DeviceController()
+            mock_popen.assert_called_once_with(["cec-client"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            mock_popen.communicate.assert_called_once_with(input="lad", timeout=15)
 
     def tearDown(self):
         """
@@ -119,39 +115,36 @@ class DeviceHandlerTest(unittest.TestCase):
         mock_timer.cancel.assert_called_once_with()
         self.assertIsNone(self.controller._standby_timer)
 
-    @unittest.mock.patch("threading.Timer", autospec=True)
-    def test_delayed_standby(self, mock_timer):
+    def test_delayed_standby(self):
         """
         Test single command delayed_standby.
 
-        :param mock_timer: the mock object for Timer
         :return: None
         """
 
-        mock_timer.return_value = mock_timer
+        with patch("threading.Timer", autospec=True) as mock_timer:
+            mock_timer.return_value.return_value = mock_timer
 
-        self.controller.delayed_standby(10)
-        self.controller._standby_timer.start.assert_called_once_with()
-        self.controller._standby_timer.reset_mock()
+            self.assertIsNone(self.controller._standby_timer)
+            self.controller.delayed_standby(10)
+            self.controller._standby_timer.start.assert_called_once_with()
 
-    @unittest.mock.patch("threading.Timer", autospec=True)
-    def test_delayed_standby_with_delayed_standby(self, mock_timer):
+    def test_delayed_standby_with_delayed_standby(self):
         """
         Test single command delayed_standby when there was a pending delayed_standby.
 
-        :param mock_timer: the mock object for Timer
         :return: None
         """
 
-        mock_timer.reset_mock()
-        mock_timer.return_value = mock_timer
+        with patch("threading.Timer") as mock_timer:
+            mock_timer.return_value = mock_timer
 
-        # Setup previous timer...
-        self.controller._standby_timer = mock_timer
+            # Simulate there was a previous timer.
+            self.controller._standby_timer = mock_timer
 
-        self.controller.delayed_standby(10)
-        mock_timer.cancel.assert_called_once_with()
-        self.controller._standby_timer.start.assert_called_once_with()
+            self.controller.delayed_standby(10)
+            mock_timer.cancel.assert_called_once_with()
+            self.controller._standby_timer.start.assert_called_once_with()
 
 
 class EventHandlerTest(unittest.TestCase):
@@ -323,20 +316,24 @@ class ConfigOptionsTest(unittest.TestCase):
 
         with patch("configparser.ConfigParser") as mock_parser:
             mock_parser.return_value.read.return_value = ["config.ini"]
-            mock_parser.return_value.has_option.return_value = True
-            mock_parser.return_value.get.return_value = "Test"
-            mock_parser.return_value.getint.return_value = 0
+            mock_parser.return_value.has_option.side_effect = ["EventServer", "MediaFormat", "MediaFormat",
+                                                               "MediaFormat", "MediaFormat", "MediaFormat",
+                                                               "MediaFormat", "MediaFormat", "DeviceControl"]
+            mock_parser.return_value.get.side_effect = ["http://localhost:5555/ev", "Events", "Notification"]
+            mock_parser.return_value.getint.side_effect = [0, 1, 2, 3, 4, 10]
 
             self.config_options.read_from_file()
 
             mock_parser.return_value.read.assert_called_once_with("config.ini")
 
+            # Parser has been asked about the right things have.
             calls = [call("EventServer", "rest_url"), call("MediaFormat", "events"), call("MediaFormat", "pb_notif"),
                      call("MediaFormat", "pb_notif_stop"), call("MediaFormat", "pb_notif_play"),
                      call("MediaFormat", "pb_notif_pause"), call("MediaFormat", "pb_notif_active_device"),
                      call("MediaFormat", "pb_notif_inactive_device"), call("DeviceControl", "power_off_delay_mins")]
             mock_parser.return_value.has_option.assert_has_calls(calls)
 
+            # Parser has been queried about the right things.
             calls = [call("MediaFormat", "events"), call("MediaFormat", "pb_notif")]
             mock_parser.return_value.get.assert_has_calls(calls)
 
@@ -344,6 +341,17 @@ class ConfigOptionsTest(unittest.TestCase):
                      call("MediaFormat", "pb_notif_pause"), call("MediaFormat", "pb_notif_active_device"),
                      call("MediaFormat", "pb_notif_inactive_device"), call("DeviceControl", "power_off_delay_mins")]
             mock_parser.return_value.getint.assert_has_calls(calls)
+
+            # Stored values match the provided data.
+            self.assertTrue(self.config_options.REST_URL == "http://localhost:5555/ev")
+            self.assertTrue(self.config_options.EVENTS == "Events")
+            self.assertTrue(self.config_options.PB_NOTIF == "Notification")
+            self.assertTrue(self.config_options.PB_NOTIF_STOP == 0)
+            self.assertTrue(self.config_options.PB_NOTIF_PLAY == 1)
+            self.assertTrue(self.config_options.PB_NOTIF_PAUSE == 2)
+            self.assertTrue(self.config_options.PB_NOTIF_ACTIVE_DEVICE == 3)
+            self.assertTrue(self.config_options.PB_NOTIF_INACTIVE_DEVICE == 4)
+            self.assertTrue(self.config_options.POWER_OFF_DELAY_MINS == 10)
 
     def test_read_from_empty_file(self):
         """
@@ -377,4 +385,4 @@ class ConfigOptionsTest(unittest.TestCase):
 
         with self.assertRaises(ValueError) as context:
             self.config_options.read_from_file()
-        self.assertTrue("Failed to open config.ini" in str(context.exception))
+            self.assertTrue("Failed to open config.ini" in str(context.exception))
