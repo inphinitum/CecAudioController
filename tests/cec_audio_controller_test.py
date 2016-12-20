@@ -218,6 +218,18 @@ class EventHandlerTest(unittest.TestCase):
 
         self.ev_handler = EventHandler(self.mock_controller, self.mock_config)
 
+    def test_not_json(self):
+        """
+        Tests the case when the response cannot be parsed as json.
+
+        :return: None
+        """
+
+        with self.assertRaises(EventError) as context:
+            response = "0123456789"
+            self.ev_handler.process_json_response(response)
+            self.assertTrue("Response from " in str(context.exception))
+
     def test_incorrect_response_format(self):
         """
         Tests that the event handler processes json responses correctly.
@@ -233,7 +245,7 @@ class EventHandlerTest(unittest.TestCase):
 
         with self.assertRaises(EventError) as context:
             self.ev_handler.process_json_response(json)
-        self.assertTrue("JSON response malformed." in str(context.exception))
+            self.assertTrue("JSON response malformed." in str(context.exception))
 
     def test_single_known_pb_events(self):
         """
@@ -320,7 +332,7 @@ class EventHandlerTest(unittest.TestCase):
             self.mock_requests_get.return_value.status_code = self.mock_config.REST_SUCCESS_CODE
             with self.assertRaises(EventError) as context:
                 self.ev_handler.listen_for_events()
-            self.assertTrue("JSON response malformed." in str(context.exception))
+                self.assertTrue("JSON response malformed." in str(context.exception))
 
     def test_listen_for_events_400(self):
         """
