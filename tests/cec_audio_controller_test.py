@@ -72,6 +72,23 @@ class DeviceHandlerTest(unittest.TestCase):
         self.controller.power_on()
         self.controller._cec_process.communicate.assert_called_with(input="on 5", timeout=15)
 
+    def test_power_on_cec_fail(self):
+        """
+        Test single command power_on with failure to communicate with cec.
+
+        :return: None
+        """
+
+        # Control that the command to power on the audio device is sent, and timer not cancelled
+        from cec_audio_controller.device_controller import CecError
+        from subprocess import TimeoutExpired
+
+        self.controller._cec_process.communicate.side_effect = TimeoutExpired("lad", 15)
+        with self.assertRaises(CecError) as context:
+            self.controller.power_on()
+            self.controller._cec_process.communicate.assert_called_with(input="on 5", timeout=15)
+        self.assertTrue("cec-client unresponsive" in str(context.exception))
+
     def test_standby(self):
         """
         Test single command standby.
@@ -83,6 +100,23 @@ class DeviceHandlerTest(unittest.TestCase):
         self.controller._cec_process.communicate.return_value = ("", "")
         self.controller.standby()
         self.controller._cec_process.communicate.assert_called_with(input="standby 5", timeout=15)
+
+    def test_standby_cec_fail(self):
+        """
+        Test single command standby with failure to communicate with cec.
+
+        :return: None
+        """
+
+        # Control that the command to standby the audio device is sent, and timer not cancelled
+        from cec_audio_controller.device_controller import CecError
+        from subprocess import TimeoutExpired
+
+        self.controller._cec_process.communicate.side_effect = TimeoutExpired("standby 5", 15)
+        with self.assertRaises(CecError) as context:
+            self.controller.standby()
+            self.controller._cec_process.communicate.assert_called_with(input="standby 5", timeout=15)
+        self.assertTrue("cec-client unresponsive" in str(context.exception))
 
     def test_power_on_with_delayed_stby(self):
         """
@@ -224,7 +258,6 @@ class DeviceHandlerTest(unittest.TestCase):
             mock_popen.terminate.assert_called_once_with()
             mock_timer.cancel.assert_called_once_with()
 
-
     def test_device_controller_no_cec(self):
         with patch("subprocess.Popen") as mock_popen:
             # Control the cec-client is invoked properly, audio device searched and found.
@@ -236,7 +269,22 @@ class DeviceHandlerTest(unittest.TestCase):
             with self.assertRaises(CecError) as context:
                 controller = DeviceController()
                 controller.initialize_cec()
-                self.assertTrue("cec_client not found." in str(context.exception))
+            self.assertTrue("cec-client not found." in str(context.exception))
+
+    def test_device_controller_no_audio(self):
+        with patch("subprocess.Popen") as mock_popen:
+            # Control the cec-client is invoked properly, audio device searched and found.
+            from cec_audio_controller.device_controller import DeviceController
+            from cec_audio_controller.device_controller import CecError
+
+            mock_popen.return_value = mock_popen
+            mock_popen.communicate.return_value = ("", "")
+
+            with self.assertRaises(CecError) as context:
+                controller = DeviceController()
+                controller.initialize_cec()
+
+            self.assertTrue("cec-client does not find audio device." in str(context.exception))
 
 
 class EventHandlerTest(unittest.TestCase):
@@ -277,7 +325,7 @@ class EventHandlerTest(unittest.TestCase):
         with self.assertRaises(EventError) as context:
             response = "0123456789"
             self.ev_handler.process_json_response(response)
-            self.assertTrue("Response from " in str(context.exception))
+        self.assertTrue("JSON response malformed." in str(context.exception))
 
     def test_incorrect_response_format(self):
         """
@@ -294,7 +342,7 @@ class EventHandlerTest(unittest.TestCase):
 
         with self.assertRaises(EventError) as context:
             self.ev_handler.process_json_response(json)
-            self.assertTrue("JSON response malformed." in str(context.exception))
+        self.assertTrue("JSON response malformed." in str(context.exception))
 
     def test_single_known_pb_events(self):
         """
@@ -381,7 +429,7 @@ class EventHandlerTest(unittest.TestCase):
             self.mock_requests_get.return_value.status_code = self.mock_config.REST_SUCCESS_CODE
             with self.assertRaises(EventError) as context:
                 self.ev_handler.listen_for_events()
-                self.assertTrue("JSON response malformed." in str(context.exception))
+            self.assertTrue("JSON response malformed." in str(context.exception))
 
     def test_listen_for_events_400(self):
         """
@@ -394,7 +442,7 @@ class EventHandlerTest(unittest.TestCase):
             mock_get.return_value.status_code = self.mock_config.REST_NOT_FOUND_CODE
             with self.assertRaises(EventError) as context:
                 self.ev_handler.listen_for_events()
-                self.assertTrue("does not respond: Status code" in str(context.exception))
+            self.assertTrue("does not respond: Status code" in str(context.exception))
 
 
 class ConfigOptionsTest(unittest.TestCase):
@@ -489,4 +537,4 @@ class ConfigOptionsTest(unittest.TestCase):
 
         with self.assertRaises(ValueError) as context:
             self.config_options.read_from_file()
-            self.assertTrue("Failed to open config.ini" in str(context.exception))
+        self.assertTrue("Failed to open config.ini" in str(context.exception))
