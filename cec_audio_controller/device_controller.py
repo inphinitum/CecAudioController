@@ -26,7 +26,6 @@ class CecError(Exception):
     def __init__(self, message):
         self.message = message
 
-
 class DeviceController:
     """
     Controller of devices that are cec-compatible.
@@ -38,14 +37,14 @@ class DeviceController:
     _standby_timer         = None
     _config_params         = None
 
-    def __init__(self):
+    def __enter__(self):
         """
-            Default constructor.
+        Initializes cec.
 
-            Raises:
-                CecError -- if the cec-client is not found in the system.
+        :return: self
         """
-        self._initialize_cec()
+        self.initialize_cec()
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """
@@ -54,12 +53,12 @@ class DeviceController:
         :param exc_type:
         :param exc_val:
         :param exc_tb:
-        :return: nothing
+        :return: None
         """
 
-        self._cleanup()
+        self.cleanup()
 
-    def _initialize_cec(self):
+    def initialize_cec(self):
         """
             Makes sure everything is initialized to control the audio device via CEC.
 
@@ -67,18 +66,18 @@ class DeviceController:
                 CecError -- if the cec-client is not found in the system.
         """
 
-        try:
-            self._cec_process = subprocess.Popen(["cec-client"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-            self._init_audio_device()
-        except OSError:
-            self._cec_process.terminate()
-            raise CecError("cec-client not found.")
+        if self._cec_process is None:
+            try:
+                self._cec_process = subprocess.Popen(["cec-client"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                self._init_audio_device()
+            except OSError:
+                raise CecError("cec-client not found.")
 
-    def _cleanup(self):
+    def cleanup(self):
         """
         Clean up all spawned threads.
 
-        :return: nothing
+        :return: None
         """
 
         # Stop the thread for the cec-tool
@@ -95,6 +94,8 @@ class DeviceController:
 
         Raises:
             CecError -- in case cec-client is unresponsive or audio device is not found.
+
+        :return: None
         """
 
         try:
@@ -112,6 +113,8 @@ class DeviceController:
 
         Raises:
              CecError -- in case cec-client is unresponsive.
+
+        :return: None
         """
 
         print("Power ON requested")
@@ -134,6 +137,8 @@ class DeviceController:
 
         Raises:
             CecError -- in case cec-client is unresponsive.
+
+        :return: None
         """
 
         print("STANDBY requested")
@@ -159,6 +164,8 @@ class DeviceController:
 
         Raises:
             CecError -- in case cec-client is unresponsive.
+
+        :return: None
         """
 
         print("Delayed STANDBY requested")
