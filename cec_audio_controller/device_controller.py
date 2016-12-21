@@ -26,6 +26,7 @@ class CecError(Exception):
     def __init__(self, message):
         self.message = message
 
+
 class DeviceController:
     """
     Controller of devices that are cec-compatible.
@@ -105,7 +106,7 @@ class DeviceController:
                 raise CecError("cec-client does not find audio device.")
 
         except subprocess.TimeoutExpired:
-            raise CecError("cec-client unresponsive.")
+            raise CecError("cec-client unresponsive, terminated.")
 
     def power_on(self):
         """
@@ -129,7 +130,7 @@ class DeviceController:
 
         except subprocess.TimeoutExpired:
             self._cec_process.terminate()
-            raise CecError("cec-client unresponsive, killed.")
+            raise CecError("cec-client unresponsive, terminated.")
 
     def standby(self):
         """
