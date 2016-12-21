@@ -306,7 +306,7 @@ class DeviceHandlerTest(unittest.TestCase):
         with patch("subprocess.Popen") as mock_popen:
             from subprocess import TimeoutExpired
             mock_popen.return_value = mock_popen
-            mock_popen.communicate.side_effect = TimeoutExpired("lad", 15)
+            mock_popen.return_value.communicate.side_effect = TimeoutExpired("lad", 15)
 
             # Control the cec-client is invoked properly, audio device searched and found
             import subprocess
