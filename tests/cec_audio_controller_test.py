@@ -45,7 +45,10 @@ class DeviceHandlerTest(unittest.TestCase):
             from cec_audio_controller.device_controller import DeviceController
 
             self.controller = DeviceController()
-            mock_popen.assert_called_once_with(["cec-client"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            self.controller.initialize_cec()
+            self.controller._cec_process.assert_called_once_with(["cec-client"],
+                                                                 stdin=subprocess.PIPE,
+                                                                 stdout=subprocess.PIPE)
             mock_popen.communicate.assert_called_once_with(input="lad", timeout=15)
 
     def tearDown(self):
@@ -55,7 +58,7 @@ class DeviceHandlerTest(unittest.TestCase):
         :return: None
         """
 
-        self.controller._cleanup()
+        self.controller.cleanup()
 
     def test_power_on(self):
         """
@@ -188,6 +191,52 @@ class DeviceHandlerTest(unittest.TestCase):
 
             self.controller.power_on()
             self.controller._cec_process.communicate.assert_called_with(input="on 5", timeout=15)
+
+    def test_device_controller_enter_exit(self):
+        """
+        Test that the process for the cec controller is correctly started and terminated when using with.
+
+        :return: None
+        """
+
+        from cec_audio_controller.device_controller import DeviceController
+
+        with patch("subprocess.Popen") as mock_popen:
+            mock_popen.return_value = mock_popen
+            mock_popen.communicate.return_value = ("logical address 5", "")
+
+            with DeviceController() as controller:
+                # Control the cec-client is invoked properly, audio device searched and found
+                import subprocess
+                controller._cec_process.assert_called_once_with(["cec-client"],
+                                                                stdin=subprocess.PIPE,
+                                                                stdout=subprocess.PIPE)
+                mock_popen.communicate.assert_called_once_with(input="lad", timeout=15)
+
+                # Make sure there's a timer to see it is cancelled properly.
+                with patch("threading.Timer") as mock_timer:
+                    mock_timer.return_value = mock_timer
+
+                    controller.power_on()
+                    controller.delayed_standby(10)
+
+            # Expected actions for __exit__
+            mock_popen.terminate.assert_called_once_with()
+            mock_timer.cancel.assert_called_once_with()
+
+
+    def test_device_controller_no_cec(self):
+        with patch("subprocess.Popen") as mock_popen:
+            # Control the cec-client is invoked properly, audio device searched and found.
+            from cec_audio_controller.device_controller import DeviceController
+            from cec_audio_controller.device_controller import CecError
+
+            mock_popen.side_effect = OSError()
+
+            with self.assertRaises(CecError) as context:
+                controller = DeviceController()
+                controller.initialize_cec()
+                self.assertTrue("cec_client not found." in str(context.exception))
 
 
 class EventHandlerTest(unittest.TestCase):
