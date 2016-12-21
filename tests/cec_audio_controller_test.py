@@ -259,6 +259,11 @@ class DeviceHandlerTest(unittest.TestCase):
             mock_timer.cancel.assert_called_once_with()
 
     def test_device_controller_no_cec(self):
+        """
+        Test when the initialization fails due to non-existing cec controller.
+
+        :return: None
+        """
         with patch("subprocess.Popen") as mock_popen:
             # Control the cec-client is invoked properly, audio device searched and found.
             from cec_audio_controller.device_controller import DeviceController
@@ -272,6 +277,11 @@ class DeviceHandlerTest(unittest.TestCase):
             self.assertTrue("cec-client not found." in str(context.exception))
 
     def test_device_controller_no_audio(self):
+        """
+        Test when there's no audio device connected to the hdmi bus.
+
+        :return: None
+        """
         with patch("subprocess.Popen") as mock_popen:
             # Control the cec-client is invoked properly, audio device searched and found.
             from cec_audio_controller.device_controller import DeviceController
@@ -285,6 +295,32 @@ class DeviceHandlerTest(unittest.TestCase):
                 controller.initialize_cec()
 
             self.assertTrue("cec-client does not find audio device." in str(context.exception))
+
+    def test_device_controller_init_audio_cec_fail(self):
+        """
+        Test initialization of audio failing due to unresponsive cec.
+
+        :return: None
+        """
+
+        with patch("subprocess.Popen") as mock_popen:
+            from subprocess import TimeoutExpired
+            mock_popen.return_value = mock_popen
+            mock_popen.communicate.side_effect = TimeoutExpired("lad", 15)
+
+            # Control the cec-client is invoked properly, audio device searched and found
+            import subprocess
+            from cec_audio_controller.device_controller import DeviceController
+
+            from cec_audio_controller.device_controller import CecError
+            with self.assertRaises(CecError) as context:
+                self.controller = DeviceController()
+                self.controller.initialize_cec()
+                self.controller._cec_process.assert_called_once_with(["cec-client"],
+                                                                     stdin=subprocess.PIPE,
+                                                                     stdout=subprocess.PIPE)
+                mock_popen.communicate.assert_called_once_with(input="lad", timeout=15)
+            self.assertTrue("cec-client unresponsive, terminated." in str(context.exception))
 
 
 class EventHandlerTest(unittest.TestCase):
@@ -325,7 +361,7 @@ class EventHandlerTest(unittest.TestCase):
         with self.assertRaises(EventError) as context:
             response = "0123456789"
             self.ev_handler.process_json_response(response)
-        self.assertTrue("JSON response malformed." in str(context.exception))
+        self.assertTrue("Response malformed." in str(context.exception))
 
     def test_incorrect_response_format(self):
         """
@@ -342,7 +378,10 @@ class EventHandlerTest(unittest.TestCase):
 
         with self.assertRaises(EventError) as context:
             self.ev_handler.process_json_response(json)
-        self.assertTrue("JSON response malformed." in str(context.exception))
+        self.assertTrue("Response malformed." in str(context.exception))
+        self.mock_controller.standby.assert_not_called()
+        self.mock_controller.power_on.assert_not_called()
+        self.mock_controller.delayed_standby.assert_not_called()
 
     def test_single_known_pb_events(self):
         """
@@ -400,8 +439,6 @@ class EventHandlerTest(unittest.TestCase):
         self.assertTrue(self.mock_controller.standby.call_count == 1)
         self.assertTrue(self.mock_controller.delayed_standby.call_count == 2)
 
-        self.mock_controller.reset_mock()
-
     def test_single_unknown_pb_events(self):
         """
         Tests that the event handler handles unknown playback events correctly.
@@ -415,11 +452,10 @@ class EventHandlerTest(unittest.TestCase):
         self.mock_controller.power_on.assert_not_called()
         self.mock_controller.standby.assert_not_called()
         self.mock_controller.delayed_standby.assert_not_called()
-        self.mock_controller.reset_mock()
 
     def test_listen_for_events_200(self):
         """
-        Tests the event listening functionality in the handler, both successful and unsuccessful.
+        Tests the event listening functionality in the handler in case of healthy response.
 
         :return: None
         """
@@ -427,9 +463,32 @@ class EventHandlerTest(unittest.TestCase):
         with patch("requests.get") as get_mock:
             self.mock_requests_get = get_mock
             self.mock_requests_get.return_value.status_code = self.mock_config.REST_SUCCESS_CODE
+            self.mock_requests_get.return_value.json.return_value =\
+                {self.mock_config.EVENTS: [{self.mock_config.PB_NOTIF: self.mock_config.PB_NOTIF_STOP}]}
+
+            self.ev_handler.listen_for_events()
+            self.mock_controller.standby.assert_called_once_with()
+
+    def test_listen_for_events_200_malformed(self):
+        """
+        Test behaviour of listen_for_events when responses are malformed.
+
+        :return: None
+        """
+
+        with patch("requests.get") as get_mock:
+            self.mock_requests_get = get_mock
+            self.mock_requests_get.return_value.status_code = self.mock_config.REST_SUCCESS_CODE
+            self.mock_requests_get.return_value.json.return_value = 123456789
+
             with self.assertRaises(EventError) as context:
                 self.ev_handler.listen_for_events()
-            self.assertTrue("JSON response malformed." in str(context.exception))
+
+            self.mock_controller.standby.assert_not_called()
+            self.mock_controller.power_on.assert_not_called()
+            self.mock_controller.delayed_standby.assert_not_called()
+        self.assertTrue("Response from " in str(context.exception))
+
 
     def test_listen_for_events_400(self):
         """
@@ -442,7 +501,7 @@ class EventHandlerTest(unittest.TestCase):
             mock_get.return_value.status_code = self.mock_config.REST_NOT_FOUND_CODE
             with self.assertRaises(EventError) as context:
                 self.ev_handler.listen_for_events()
-            self.assertTrue("does not respond: Status code" in str(context.exception))
+            self.assertTrue("responded with status code" in str(context.exception))
 
 
 class ConfigOptionsTest(unittest.TestCase):
