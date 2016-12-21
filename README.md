@@ -15,22 +15,21 @@ it can't be distributed together with this project.
 ## Examples
 
 ```python
-controller = device_controller()
-controller.power_on()
+with DeviceController() as controller:
+    controller.power_on()
 ```
 ```python
-controller = device_controller()
-controller.standby()
+with DeviceController() as controller:
+    controller.standby()
 ```
 ```python
-controller = device_controller()
+with DeviceController() as controller:
+    config = config_options.ConfigOptions()
+    config.read_from_file()
 
-config = config_options.ConfigOptions()
-config.read_from_file()
-
-ev_handler = event_handler.EventHandler(controller, config)
-ev_handler.listen_for_events()
-ev_handler.listen_for_events()
+    ev_handler = event_handler.EventHandler(controller, config)
+    ev_handler.listen_for_events()
+    ev_handler.listen_for_events()
 ```
 
 ## Configuration file
