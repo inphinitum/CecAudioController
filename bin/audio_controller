@@ -35,19 +35,20 @@ if __name__ == "__main__":
     group.add_argument("-event_listener", action="store_false")
     arguments = parser.parse_args()
 
-    # Initialize CEC stuff and listen for events if OK
-    controller = device_controller.DeviceController()
+    with DeviceController() as controller:
+        # Initialize CEC stuff and listen for events if OK
+        controller = device_controller.DeviceController()
 
-    if arguments.power_on:
-        controller.power_on()
-    elif arguments.standby:
-        controller.standby()
-    else:
-        # Gather configuration options
-        config = config_options.ConfigOptions()
-        config.read_from_file()
+        if arguments.power_on:
+            controller.power_on()
+        elif arguments.standby:
+            controller.standby()
+        else:
+            # Gather configuration options
+            config = config_options.ConfigOptions()
+            config.read_from_file()
 
-        print("Initialization OK, listening for events on " + config.REST_URL)
-        ev_handler = event_handler.EventHandler(controller, config)
-        while True:
-            ev_handler.listen_for_events()
+            print("Initialization OK, listening for events on " + config.REST_URL)
+            ev_handler = event_handler.EventHandler(controller, config)
+            while True:
+                ev_handler.listen_for_events()
