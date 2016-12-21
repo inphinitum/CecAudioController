@@ -54,23 +54,21 @@ class EventHandler:
         Listens on the given URL for events and dispatches the type of event
         to the right function for further processing.
 
-        Processes one response at a time. If you want to listen indefinetly you
+        Processes one response at a time. If you want to listen indefinitely you
         must loop outside.
 
         :return: None
         """
 
         response = requests.get(self._config.REST_URL)
-        print(response.status_code == self._config.REST_SUCCESS_CODE)
-
         if response.status_code == self._config.REST_SUCCESS_CODE:
             try:
-                json_data = response.json()
-                self.process_json_response(json_data)
-            except ValueError:
-                raise EventError("Response from " + self._config.REST_URL + " could not be decoded as JSON.")
+                self.process_json_response(response.json())
+            except EventError as error:
+                raise EventError("Response from " + self._config.REST_URL + error.message)
         else:
-            raise EventError(self._config.REST_URL + " does not respond: Status code " + str(response.status_code))
+            raise EventError("Error: " + self._config.REST_URL +
+                             " responded with status code: " + str(response.status_code))
 
     def process_json_response(self, json_data):
         """
@@ -81,12 +79,15 @@ class EventHandler:
         :return: None
         """
 
-        if self._config.EVENTS in json_data:
-            for event in json_data[self._config.EVENTS]:
-                if self._config.PB_NOTIF in event.keys():
-                    self._process_single_playback_event(event)
-        else:
-            raise EventError("JSON response malformed.")
+        try:
+            if self._config.EVENTS in json_data:
+                for event in json_data[self._config.EVENTS]:
+                    if self._config.PB_NOTIF in event.keys():
+                        self._process_single_playback_event(event)
+            else:
+                raise EventError("Response malformed.")
+        except TypeError:
+            raise EventError("Response malformed.")
 
     def _process_single_playback_event(self, event):
         """
