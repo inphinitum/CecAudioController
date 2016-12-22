@@ -82,11 +82,13 @@ class DeviceController:
         """
 
         # Stop the thread for the cec-tool
-        if self._cec_process is not None:
+        from subprocess import Popen
+        if isinstance(self._cec_process, type(Popen)):
             self._cec_process.terminate()
 
         # Stop the timer if any
-        if self._standby_timer is not None:
+        from threading import Timer
+        if isinstance(self._standby_timer, Timer):
             self._standby_timer.cancel()
 
     def _init_audio_device(self):

@@ -24,9 +24,9 @@ from cec_audio_controller.event_handler import EventHandler
 from cec_audio_controller.config_options import ConfigOptions
 
 
-class DeviceHandlerTest(unittest.TestCase):
+class DeviceControllerTest(unittest.TestCase):
     """
-    Unit tests for the DeviceHandler class in cec_audio_controller.
+    Unit tests for the DeviceController class in cec_audio_controller.
     """
 
     def setUp(self):
@@ -36,7 +36,7 @@ class DeviceHandlerTest(unittest.TestCase):
         :return: None
         """
 
-        with patch("subprocess.Popen") as mock_popen:
+        with patch("subprocess.Popen", spec=True) as mock_popen:
             mock_popen.return_value = mock_popen
             mock_popen.communicate.return_value = ("logical address 5", "")
 
@@ -173,7 +173,7 @@ class DeviceHandlerTest(unittest.TestCase):
         :return: None
         """
 
-        with patch("threading.Timer") as mock_timer:
+        with patch("threading.Timer", spec=True) as mock_timer:
             mock_timer.return_value = mock_timer
 
             # Simulate there was a previous timer.
@@ -190,7 +190,7 @@ class DeviceHandlerTest(unittest.TestCase):
         :return:
         """
 
-        with patch("threading.Timer") as mock_timer:
+        with patch("threading.Timer", spec=True) as mock_timer:
             mock_timer.return_value = mock_timer
 
             self.controller.power_on()
@@ -210,7 +210,7 @@ class DeviceHandlerTest(unittest.TestCase):
         :return:
         """
 
-        with patch("threading.Timer"):
+        with patch("threading.Timer", spec=True):
             self.controller.power_on()
             self.controller._cec_process.communicate.assert_called_with(input="on 5", timeout=15)
 
@@ -226,7 +226,12 @@ class DeviceHandlerTest(unittest.TestCase):
             self.controller.power_on()
             self.controller._cec_process.communicate.assert_called_with(input="on 5", timeout=15)
 
-    def test_device_controller_enter_exit(self):
+class DeviceControllerInitCleanupTest(unittest.TestCase):
+    """
+    Test class to test basic initialization and cleanup.
+    """
+
+    def test_enter_exit(self):
         """
         Test that the process for the cec controller is correctly started and terminated when using with.
 
@@ -235,36 +240,34 @@ class DeviceHandlerTest(unittest.TestCase):
 
         from cec_audio_controller.device_controller import DeviceController
 
-        with patch("subprocess.Popen") as mock_popen:
+        with patch("subprocess.Popen", spec=True) as mock_popen:
             mock_popen.return_value = mock_popen
             mock_popen.communicate.return_value = ("logical address 5", "")
 
             with DeviceController() as controller:
                 # Control the cec-client is invoked properly, audio device searched and found
                 import subprocess
-                controller._cec_process.assert_called_once_with(["cec-client"],
-                                                                stdin=subprocess.PIPE,
-                                                                stdout=subprocess.PIPE)
+                mock_popen.assert_called_once_with(["cec-client"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
                 mock_popen.communicate.assert_called_once_with(input="lad", timeout=15)
 
                 # Make sure there's a timer to see it is cancelled properly.
-                with patch("threading.Timer") as mock_timer:
+                with patch("threading.Timer", spec=True) as mock_timer:
                     mock_timer.return_value = mock_timer
-
                     controller.power_on()
                     controller.delayed_standby(10)
+                    mock_timer.start.assert_called_once_with()
 
             # Expected actions for __exit__
             mock_popen.terminate.assert_called_once_with()
             mock_timer.cancel.assert_called_once_with()
 
-    def test_device_controller_no_cec(self):
+    def test_no_cec(self):
         """
         Test when the initialization fails due to non-existing cec controller.
 
         :return: None
         """
-        with patch("subprocess.Popen") as mock_popen:
+        with patch("subprocess.Popen", spec=True) as mock_popen:
             # Control the cec-client is invoked properly, audio device searched and found.
             from cec_audio_controller.device_controller import DeviceController
             from cec_audio_controller.device_controller import CecError
@@ -276,13 +279,13 @@ class DeviceHandlerTest(unittest.TestCase):
                 controller.initialize_cec()
             self.assertTrue("cec-client not found." in str(context.exception))
 
-    def test_device_controller_no_audio(self):
+    def test_no_audio(self):
         """
         Test when there's no audio device connected to the hdmi bus.
 
         :return: None
         """
-        with patch("subprocess.Popen") as mock_popen:
+        with patch("subprocess.Popen", spec=True) as mock_popen:
             # Control the cec-client is invoked properly, audio device searched and found.
             from cec_audio_controller.device_controller import DeviceController
             from cec_audio_controller.device_controller import CecError
@@ -296,14 +299,14 @@ class DeviceHandlerTest(unittest.TestCase):
 
             self.assertTrue("cec-client does not find audio device." in str(context.exception))
 
-    def test_device_controller_init_audio_cec_fail(self):
+    def test_init_audio_cec_fail(self):
         """
         Test initialization of audio failing due to unresponsive cec.
 
         :return: None
         """
 
-        with patch("subprocess.Popen") as mock_popen:
+        with patch("subprocess.Popen", spec=True) as mock_popen:
             from subprocess import TimeoutExpired
             mock_popen.return_value = mock_popen
             mock_popen.return_value.communicate.side_effect = TimeoutExpired("lad", 15)
@@ -316,11 +319,51 @@ class DeviceHandlerTest(unittest.TestCase):
             with self.assertRaises(CecError) as context:
                 self.controller = DeviceController()
                 self.controller.initialize_cec()
-                self.controller._cec_process.assert_called_once_with(["cec-client"],
-                                                                     stdin=subprocess.PIPE,
-                                                                     stdout=subprocess.PIPE)
+                mock_popen.assert_called_once_with(["cec-client"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
                 mock_popen.communicate.assert_called_once_with(input="lad", timeout=15)
             self.assertTrue("cec-client unresponsive, terminated." in str(context.exception))
+
+    def test_cleanup_before_initialization(self):
+        """
+        Test no action is taken if cleanup is called before initialization.
+
+        :return: None
+        """
+
+        from cec_audio_controller.device_controller import DeviceController
+
+        controller = DeviceController()
+        controller._cec_process = Mock()
+        controller._standby_timer = Mock()
+
+        controller.cleanup()
+        controller._cec_process.terminate.assert_not_called()
+        controller._standby_timer.cancel.assert_not_called()
+
+    def test_initialize_twice(self):
+        """
+        Test that initialization of an already-initialized controller doesn't do anything.
+
+        :return: None
+        """
+
+        from cec_audio_controller.device_controller import DeviceController
+
+        with patch("subprocess.Popen", spec=True) as mock_popen:
+            mock_popen.return_value = mock_popen
+            mock_popen.communicate.return_value = ("logical address 5", "")
+
+            with DeviceController() as controller:
+                # Control the cec-client is invoked properly, audio device searched and found
+                import subprocess
+                mock_popen.assert_called_once_with(["cec-client"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                mock_popen.communicate.assert_called_once_with(input="lad", timeout=15)
+                mock_popen.reset_mock()
+
+                # Second (not needed) initialization.
+                controller.initialize_cec()
+                mock_popen.assert_not_called()
+                mock_popen.communicate.assert_not_called()
 
 
 class EventHandlerTest(unittest.TestCase):
@@ -379,6 +422,21 @@ class EventHandlerTest(unittest.TestCase):
         with self.assertRaises(EventError) as context:
             self.ev_handler.process_json_response(json)
         self.assertTrue("Response malformed." in str(context.exception))
+        self.mock_controller.standby.assert_not_called()
+        self.mock_controller.power_on.assert_not_called()
+        self.mock_controller.delayed_standby.assert_not_called()
+
+    def test_not_recognised_events(self):
+        """
+        Test behaviour when JSON is correctly formed but events are not recognised.
+
+        :return: None
+        """
+
+        # EVENTS top element not present
+        json = {"Events": [{"Notif": 0}]}
+
+        self.ev_handler.process_json_response(json)
         self.mock_controller.standby.assert_not_called()
         self.mock_controller.power_on.assert_not_called()
         self.mock_controller.delayed_standby.assert_not_called()
