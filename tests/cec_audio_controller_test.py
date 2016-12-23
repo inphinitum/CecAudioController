@@ -86,7 +86,7 @@ class DeviceControllerTest(unittest.TestCase):
         self.controller._cec_process.communicate.side_effect = TimeoutExpired("lad", 15)
         with self.assertRaises(CecError) as context:
             self.controller.power_on()
-            self.controller._cec_process.communicate.assert_called_with(input="on 5", timeout=15)
+        self.controller._cec_process.communicate.assert_called_with(input="on 5", timeout=15)
         self.assertTrue("cec-client unresponsive" in str(context.exception))
 
     def test_standby(self):
