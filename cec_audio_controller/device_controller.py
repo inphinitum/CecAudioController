@@ -32,11 +32,12 @@ class DeviceController:
     Controller of devices that are cec-compatible.
     """
 
-    _AUDIO_LOGICAL_ADDRESS = 5
-    _cec_process           = None
-    _cec_lib               = None
-    _standby_timer         = None
-    _config_params         = None
+    def __init__(self):
+        self._AUDIO_LOGICAL_ADDRESS = 5
+        self._cec_process           = None
+        self._cec_lib               = None
+        self._standby_timer         = None
+        self._config_params         = None
 
     def __enter__(self):
         """

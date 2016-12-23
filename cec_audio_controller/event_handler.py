@@ -34,9 +34,6 @@ class EventHandler:
     and invoke the appropriate commands on a CecController object
     """
 
-    _controller = None
-    _config = None
-
     def __init__(self, controller, config):
         """
         Constructor.

@@ -21,16 +21,17 @@ class ConfigOptions:
     Handles configuration options, including reading from disk (config.ini)
     """
 
-    REST_URL                 = ""
-    REST_SUCCESS_CODE        = 200      # Standard HTTP success response code
-    EVENTS                   = ""
-    PB_NOTIF                 = ""
-    PB_NOTIF_STOP            = -1
-    PB_NOTIF_PLAY            = -1
-    PB_NOTIF_PAUSE           = -1
-    PB_NOTIF_ACTIVE_DEVICE   = -1
-    PB_NOTIF_INACTIVE_DEVICE = -1
-    POWER_OFF_DELAY_MINS     = 10
+    def __init__(self):
+        self.REST_URL                 = ""
+        self.REST_SUCCESS_CODE        = 200  # Standard HTTP success response code
+        self.EVENTS                   = ""
+        self.PB_NOTIF                 = ""
+        self.PB_NOTIF_STOP            = -1
+        self.PB_NOTIF_PLAY            = -1
+        self.PB_NOTIF_PAUSE           = -1
+        self.PB_NOTIF_ACTIVE_DEVICE   = -1
+        self.PB_NOTIF_INACTIVE_DEVICE = -1
+        self.POWER_OFF_DELAY_MINS     = 10
 
     def read_from_file(self):
         """

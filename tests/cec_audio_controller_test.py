@@ -226,6 +226,7 @@ class DeviceControllerTest(unittest.TestCase):
             self.controller.power_on()
             self.controller._cec_process.communicate.assert_called_with(input="on 5", timeout=15)
 
+
 class DeviceControllerInitCleanupTest(unittest.TestCase):
     """
     Test class to test basic initialization and cleanup.
@@ -546,7 +547,6 @@ class EventHandlerTest(unittest.TestCase):
             self.mock_controller.power_on.assert_not_called()
             self.mock_controller.delayed_standby.assert_not_called()
         self.assertTrue("Response from " in str(context.exception))
-
 
     def test_listen_for_events_400(self):
         """
