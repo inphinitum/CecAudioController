@@ -18,9 +18,9 @@ limitations under the License.
 
 import argparse
 
-from cec_audio_controller import config_options
-from cec_audio_controller import device_controller
-from cec_audio_controller import event_handler
+from audio_device_controller import config_options
+from audio_device_controller import device_controller
+from audio_device_controller import event_handler
 
 
 if __name__ == "__main__":

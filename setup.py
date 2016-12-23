@@ -3,11 +3,11 @@
 
 from setuptools import setup, find_packages
 
-import cec_audio_controller
+import audio_device_controller
 
 
-NAME = "cec_audio_controller"
-VERSION = str(cec_audio_controller.VERSION)
+NAME = "audio_device_controller"
+VERSION = str(audio_device_controller.VERSION)
 
 with open("requirements.txt") as reqs_file:
     required = reqs_file.read().splitlines()

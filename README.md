@@ -1,10 +1,11 @@
-# cec_audio_controller
+# audio_device_controller
 
 [![Build Status](https://travis-ci.org/inphinitum/cec_audio_controller.svg?branch=master)](https://travis-ci.org/inphinitum/cec_audio_controller)
 [![codecov](https://codecov.io/gh/inphinitum/cec_audio_controller/branch/master/graph/badge.svg)](https://codecov.io/gh/inphinitum/cec_audio_controller)
 [![License](https://img.shields.io/github/license/inphinitum/cec_audio_controller.svg)](LICENSE)
 
-Controller of audio devices that are connected via HDMI and CEC-compatible.
+Controller of audio devices via different options. Provided today:
+- HDMI and CEC-compatible.
 
 Can listen to events via a REST API, or be called with specific commands.
 
@@ -15,7 +16,7 @@ it can't be distributed together with this project.
 ## Examples
 
 ```python
-with DeviceController() as controller:
+with DeviceControllerCec() as controller:
     controller.power_on()
 ```
 ```python
@@ -23,7 +24,7 @@ with DeviceController() as controller:
     controller.standby()
 ```
 ```python
-with DeviceController() as controller:
+with DeviceControllerCec() as controller:
     config = config_options.ConfigOptions()
     config.read_from_file()
 
