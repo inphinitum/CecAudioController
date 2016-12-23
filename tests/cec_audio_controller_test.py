@@ -115,7 +115,7 @@ class DeviceControllerTest(unittest.TestCase):
         self.controller._cec_process.communicate.side_effect = TimeoutExpired("standby 5", 15)
         with self.assertRaises(CecError) as context:
             self.controller.standby()
-            self.controller._cec_process.communicate.assert_called_with(input="standby 5", timeout=15)
+        self.controller._cec_process.communicate.assert_called_with(input="standby 5", timeout=15)
         self.assertTrue("cec-client unresponsive" in str(context.exception))
 
     def test_power_on_with_delayed_stby(self):
@@ -320,8 +320,8 @@ class DeviceControllerInitCleanupTest(unittest.TestCase):
             with self.assertRaises(CecError) as context:
                 self.controller = DeviceController()
                 self.controller.initialize_cec()
-                mock_popen.assert_called_once_with(["cec-client"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-                mock_popen.communicate.assert_called_once_with(input="lad", timeout=15)
+            mock_popen.assert_called_once_with(["cec-client"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            mock_popen.communicate.assert_called_once_with(input="lad", timeout=15)
             self.assertTrue("cec-client unresponsive, terminated." in str(context.exception))
 
     def test_cleanup_before_initialization(self):
