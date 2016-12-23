@@ -136,6 +136,7 @@ class DeviceControllerCec(DeviceController):
         Raises:
             CecError -- if the cec-client is not found in the system.
         """
+        super().initialize()
 
         if self._cec_process is None:
             try:
