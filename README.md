@@ -1,4 +1,4 @@
-# audio_device_controller
+# audio-device-controller
 
 [![Build Status](https://travis-ci.org/inphinitum/cec_audio_controller.svg?branch=master)](https://travis-ci.org/inphinitum/cec_audio_controller)
 [![codecov](https://codecov.io/gh/inphinitum/cec_audio_controller/branch/master/graph/badge.svg)](https://codecov.io/gh/inphinitum/cec_audio_controller)
@@ -20,7 +20,7 @@ with DeviceControllerCec() as controller:
     controller.power_on()
 ```
 ```python
-with DeviceController() as controller:
+with DeviceControllerCec() as controller:
     controller.standby()
 ```
 ```python
