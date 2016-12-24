@@ -116,4 +116,4 @@ class SessionHandler:
         if self._active and self._dev_on:
             self._dev_controller.standby()
             self._dev_on = False
-            self._pause_timer = None
+        self._pause_timer = None
