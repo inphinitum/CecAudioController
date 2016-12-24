@@ -36,7 +36,7 @@ class DeviceController:
         """
         Default constructor.
         """
-        self._standby_timer = None
+        pass
 
     def __enter__(self):
         """
@@ -72,10 +72,7 @@ class DeviceController:
 
         :return: None
         """
-        # Stop the timer if any
-        from threading import Timer
-        if isinstance(self._standby_timer, Timer):
-            self._standby_timer.cancel()
+        pass
 
     def power_on(self):
         """
@@ -83,9 +80,7 @@ class DeviceController:
 
         :return: None
         """
-        if self._standby_timer is not None:
-            self._standby_timer.cancel()
-            self._standby_timer = None
+        pass
 
     def standby(self):
         """
@@ -93,28 +88,7 @@ class DeviceController:
 
         :return: None
         """
-        if self._standby_timer is not None:
-            self._standby_timer.cancel()
-            self._standby_timer = None
-
-    def delayed_standby(self, seconds):
-        """
-        Put the audio device on standby after the given number of seconds. Used for
-        temporary pauses, when switching off is annoying for the user. This action
-        will be cancelled if a power_on or power_off command is received before the
-        timer lapses.
-
-        :return: None
-        """
-
-        # If there was a timer, cancel and release.
-        if self._standby_timer is not None:
-            self._standby_timer.cancel()
-            self._standby_timer = None
-
-        from threading import Timer
-        self._standby_timer = Timer(seconds, self.standby)
-        self._standby_timer.start()
+        pass
 
 
 class DeviceControllerCec(DeviceController):
@@ -161,9 +135,9 @@ class DeviceControllerCec(DeviceController):
         super().cleanup()
 
         # Stop the thread for the cec-tool
-        from subprocess import Popen
-        if isinstance(self._cec_process, type(Popen)):
+        if self._cec_process is not None and callable(getattr(self._cec_process, "terminate")):
             self._cec_process.terminate()
+            self._cec_process = None
 
     def power_on(self):
         """

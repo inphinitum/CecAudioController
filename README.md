@@ -16,21 +16,22 @@ it can't be distributed together with this project.
 ## Examples
 
 ```python
-with DeviceControllerCec() as controller:
-    controller.power_on()
+with SessionHandler() as session:
+    session.active(True)
+    session.play()
 ```
 ```python
 with DeviceControllerCec() as controller:
     controller.standby()
 ```
 ```python
-with DeviceControllerCec() as controller:
+with SessionHandler() as session:
     config = config_options.ConfigOptions()
     config.read_from_file()
 
-    ev_handler = event_handler.EventHandler(controller, config)
-    ev_handler.listen_for_events()
-    ev_handler.listen_for_events()
+    ev_handler = event_handler.EventHandler(session, config)
+    while True:
+        ev_handler.listen_for_events()
 ```
 
 ## Configuration file

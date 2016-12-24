@@ -34,16 +34,16 @@ class EventHandler:
     and invoke the appropriate commands on a CecController object
     """
 
-    def __init__(self, controller, config):
+    def __init__(self, session, config):
         """
         Constructor.
 
-        :param controller: DeviceController to be used to call commands.
+        :param session: SessionHandler to be used to call commands.
         :param config: ConfigOptions holding info on how json events are formed etc.
         :return: None
         """
 
-        self._controller = controller
+        self._session = session
         self._config = config
 
     def listen_for_events(self):
@@ -57,14 +57,14 @@ class EventHandler:
         :return: None
         """
 
-        response = requests.get(self._config.REST_URL)
-        if response.status_code == self._config.REST_SUCCESS_CODE:
+        response = requests.get(self._config._REST_URL)
+        if response.status_code == self._config._REST_SUCCESS_CODE:
             try:
                 self.process_json_response(response.json())
             except EventError as error:
-                raise EventError("Response from " + self._config.REST_URL + error.message)
+                raise EventError("Response from " + self._config._REST_URL + error.message)
         else:
-            raise EventError("Error: " + self._config.REST_URL +
+            raise EventError("Error: " + self._config._REST_URL +
                              " responded with status code: " + str(response.status_code))
 
     def process_json_response(self, json_data):
@@ -77,9 +77,9 @@ class EventHandler:
         """
 
         try:
-            if self._config.EVENTS in json_data:
-                for event in json_data[self._config.EVENTS]:
-                    if self._config.PB_NOTIF in event.keys():
+            if self._config._EVENTS in json_data:
+                for event in json_data[self._config._EVENTS]:
+                    if self._config._PB_NOTIF in event.keys():
                         self._process_single_playback_event(event)
             else:
                 raise EventError("Response malformed.")
@@ -95,15 +95,15 @@ class EventHandler:
         :return: None
         """
 
-        n_type = event[self._config.PB_NOTIF]
+        n_type = event[self._config._PB_NOTIF]
 
-        if n_type == self._config.PB_NOTIF_PLAY or n_type == self._config.PB_NOTIF_ACTIVE_DEVICE:
-            self._controller.power_on()
-        elif n_type == self._config.PB_NOTIF_STOP:
-            self._controller.standby()
-        elif n_type == self._config.PB_NOTIF_INACTIVE_DEVICE:
-            self._controller.delayed_standby(self._config.POWER_OFF_DELAY_MINS)     # Seconds in this case
-        elif n_type == self._config.PB_NOTIF_PAUSE:
-            self._controller.delayed_standby(self._config.POWER_OFF_DELAY_MINS * 60)
+        if n_type == self._config._PB_NOTIF_ACTIVE_DEVICE:
+            self._session.active(True)
+        elif n_type == self._config._PB_NOTIF_INACTIVE_DEVICE:
+            self._session.active(False)
+        elif n_type == self._config._PB_NOTIF_PLAY:
+            self._session.play()
+        elif n_type == self._config._PB_NOTIF_STOP or n_type == self._config._PB_NOTIF_PAUSE:
+            self._session.pause(self._config._POWER_OFF_DELAY_MINS * 60)
         else:
             sys.stdout.write("Type of playback event not recognised.")

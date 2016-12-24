@@ -22,11 +22,271 @@ from unittest.mock import call
 from audio_device_controller.event_handler import EventError
 from audio_device_controller.event_handler import EventHandler
 from audio_device_controller.config_options import ConfigOptions
+from audio_device_controller.session_handler import SessionHandler
+
+
+class SessionHandlerTest(unittest.TestCase):
+    """
+    Unit tests for the PlayerDeviceCoordinator class in audio_device_controller.
+    """
+
+    def test_enter_exit(self):
+        """
+        Test that all the resources are correctly initialized and released.
+
+        The device controller should be initialized and cleaned-up, pause timer should be cancelled and None-ed.
+        :return: None
+        """
+
+        with patch("threading.Timer") as mock_timer:
+            mock_timer.return_value = mock_timer
+
+            from audio_device_controller.device_controller import DeviceController
+            mock_dev_ctrl = Mock(spec=DeviceController)
+
+            with SessionHandler(mock_dev_ctrl):
+                mock_dev_ctrl.initialize.assert_called_once_with()
+
+            mock_dev_ctrl.standby.assert_called_once_with()
+            mock_dev_ctrl.cleanup.assert_called_once_with()
+            mock_dev_ctrl.reset_mock()
+
+            with SessionHandler(mock_dev_ctrl) as session:
+                session.active(True)
+                session.play()
+                session.pause(10)
+
+            mock_dev_ctrl.standby.assert_called_once_with()
+            mock_dev_ctrl.cleanup.assert_called_once_with()
+            mock_timer.cancel.assert_called_once_with()
+            session._pause_timer = None
+
+    def test_player_active_prev_inactive(self):
+        """
+        Test active command when session was inactive.
+
+        power_on() shall be invoked.
+        :return: None
+        """
+
+        from audio_device_controller.device_controller import DeviceController
+        mock_dev_ctrl = Mock(spec=DeviceController)
+
+        with SessionHandler(mock_dev_ctrl) as session:
+            session.active(True)
+            mock_dev_ctrl.power_on.assert_called_with()
+            mock_dev_ctrl.standby.assert_not_called()
+
+    def test_player_active_prev_active(self):
+        """
+        Test active command when session was already active.
+
+        Nothing should happen.
+        :return: None
+        """
+
+        from audio_device_controller.device_controller import DeviceController
+        mock_dev_ctrl = Mock(spec=DeviceController)
+
+        with SessionHandler(mock_dev_ctrl) as session:
+            session.active(True)
+            mock_dev_ctrl.reset_mock()
+
+            session.active(True)
+            mock_dev_ctrl.power_on.assert_not_called()
+            mock_dev_ctrl.standby.assert_not_called()
+
+    def test_player_inactive_prev_active(self):
+        """
+        Test inactive command when session was active.
+
+        standby() should be called().
+        :return: None
+        """
+
+        from audio_device_controller.device_controller import DeviceController
+        mock_dev_ctrl = Mock(spec=DeviceController)
+
+        with SessionHandler(mock_dev_ctrl) as session:
+            session.active(True)
+            mock_dev_ctrl.reset_mock()
+
+            session.active(False)
+            mock_dev_ctrl.power_on.assert_not_called()
+            mock_dev_ctrl.standby.assert_called_once_with()
+
+    def test_player_inactive_prev_inactive(self):
+        """
+        Test inactive command when session was already inactive.
+
+        Nothing should happen.
+        :return: None
+        """
+
+        from audio_device_controller.device_controller import DeviceController
+        mock_dev_ctrl = Mock(spec=DeviceController)
+
+        with SessionHandler(mock_dev_ctrl) as session:
+            session.active(False)
+            mock_dev_ctrl.power_on.assert_not_called()
+            mock_dev_ctrl.standby.assert_not_called()
+
+    def test_player_inactive_prev_pause(self):
+        """
+        Test inactive command when session was active and paused.
+
+        Timer for pause should be cancelled, standby() invoked.
+        :return: None
+        """
+
+        with patch("threading.Timer") as mock_timer:
+            mock_timer.return_value = mock_timer
+
+            from audio_device_controller.device_controller import DeviceController
+            mock_dev_ctrl = Mock(spec=DeviceController)
+
+            with SessionHandler(mock_dev_ctrl) as session:
+                session.active(True)
+                session.pause(10)
+                mock_dev_ctrl.reset_mock()
+                mock_timer.reset_mock()
+
+                session.active(False)
+                mock_timer.cancel.assert_called_once_with()
+                self.assertIs(session._pause_timer, None)
+                mock_dev_ctrl.power_on.assert_not_called()
+                mock_dev_ctrl.standby.assert_called_once_with()
+
+    def test_play_active(self):
+        """
+        Test play command when session is active and not paused.
+
+        Nothing should happen.
+        :return: None
+        """
+
+        from audio_device_controller.device_controller import DeviceController
+        mock_dev_ctrl = Mock(spec=DeviceController)
+
+        with SessionHandler(mock_dev_ctrl) as session:
+            session.active(True)
+            mock_dev_ctrl.reset_mock()
+
+            session.play()
+            mock_dev_ctrl.power_on.assert_not_called()
+            mock_dev_ctrl.standby.assert_not_called()
+
+    def test_play_active_prev_pause(self):
+        """
+        Test play command when session is active and paused.
+
+        Scheduled standby() should be cancelled and no new power_on should be invoked.
+        :return: None
+        """
+
+        with patch("threading.Timer") as mock_timer:
+            mock_timer.return_value = mock_timer
+
+            from audio_device_controller.device_controller import DeviceController
+            mock_dev_ctrl = Mock(spec=DeviceController)
+
+            with SessionHandler(mock_dev_ctrl) as session:
+                session.active(True)
+                session.pause(10)
+                mock_dev_ctrl.reset_mock()
+
+                session.play()
+                mock_timer.cancel.called_once_with_args()
+                mock_dev_ctrl.power_on.not_called()
+                mock_dev_ctrl.standby.not_called()
+
+    def test_play_inactive(self):
+        """
+        Test play command when session is inactive.
+
+        Nothing should happen.
+        :return: None
+        """
+
+        from audio_device_controller.device_controller import DeviceController
+        mock_dev_ctrl = Mock(spec=DeviceController)
+
+        with SessionHandler(mock_dev_ctrl) as session:
+            session.play()
+            mock_dev_ctrl.power_on.not_called()
+            mock_dev_ctrl.standby.not_called()
+
+    def test_pause_active(self):
+        """
+        Test pause command when session is active.
+
+        A timer should be started to invoke standby() on the device controller.
+        :return: None
+        """
+
+        with patch("threading.Timer") as mock_timer:
+            mock_timer.return_value = mock_timer
+
+            from audio_device_controller.device_controller import DeviceController
+            mock_dev_ctrl = Mock(spec=DeviceController)
+
+            with SessionHandler(mock_dev_ctrl) as session:
+                session.active(True)
+                session.pause(10)
+
+                mock_timer.start.called_once_with_args(10)
+                mock_dev_ctrl.power_on.not_called()
+                mock_dev_ctrl.standby.not_called()
+
+    def test_pause_active_prev_pause(self):
+        """
+        Test pause command when session is active and there was a previous pause.
+
+        Nothing should happen.
+        :return:
+        """
+
+        with patch("threading.Timer") as mock_timer:
+            mock_timer.return_value = mock_timer
+
+            from audio_device_controller.device_controller import DeviceController
+            mock_dev_ctrl = Mock(spec=DeviceController)
+
+            with SessionHandler(mock_dev_ctrl) as session:
+                session.active(True)
+                session.pause(10)
+                mock_timer.reset_mock()
+
+                session.pause(10)
+                mock_timer.cancel.assert_not_called()
+                mock_timer.start.assert_not_called()
+                mock_dev_ctrl.power_on.not_called()
+                mock_dev_ctrl.standby.not_called()
+
+    def test_pause_inactive(self):
+        """
+        Test pause command when session is inactive.
+
+        Nothing should happen, no timer should be started.
+        :return: None
+        """
+
+        with patch("threading.Timer") as mock_timer:
+            mock_timer.return_value = mock_timer
+
+            from audio_device_controller.device_controller import DeviceController
+            mock_dev_ctrl = Mock(spec=DeviceController)
+
+            with SessionHandler(mock_dev_ctrl) as session:
+                session.pause(10)
+                self.assertIsNone(session._pause_timer)
+                mock_dev_ctrl.power_on.not_called()
+                mock_dev_ctrl.standby.not_called()
 
 
 class DeviceControllerCecTest(unittest.TestCase):
     """
-    Unit tests for the DeviceController class in audio_device_controller.
+    Unit tests for the DeviceControllerCec class in audio_device_controller.
     """
 
     def setUp(self):
@@ -118,151 +378,13 @@ class DeviceControllerCecTest(unittest.TestCase):
         self.controller._cec_process.communicate.assert_called_with(input="standby 5", timeout=15)
         self.assertTrue("cec-client unresponsive" in str(context.exception))
 
-    def test_power_on_with_delayed_stby(self):
-        """
-        Test single command power_on while there was a pending delayed_standby.
-
-        :return: None
-        """
-
-        mock_timer = Mock()
-        self.controller._standby_timer = mock_timer
-
-        # Control that the command to power on the audio device is sent, and timer cancelled
-        self.controller._cec_process.communicate.return_value = ("", "")
-        self.controller.power_on()
-        self.controller._cec_process.communicate.assert_called_with(input="on 5", timeout=15)
-        mock_timer.cancel.assert_called_with()
-        self.assertIsNone(self.controller._standby_timer)
-
-    def test_standby_with_delayed_stby(self):
-        """
-        Test single command power_on while there was a pending delayed_standby.
-
-        :return: None
-        """
-
-        mock_timer = Mock()
-        self.controller._standby_timer = mock_timer
-
-        # Control that the command to power on the audio device is sent, and timer cancelled
-        self.controller._cec_process.communicate.return_value = ("", "")
-        self.controller.standby()
-        self.controller._cec_process.communicate.assert_called_with(input="standby 5", timeout=15)
-        mock_timer.cancel.assert_called_once_with()
-        self.assertIsNone(self.controller._standby_timer)
-
-    def test_delayed_standby(self):
-        """
-        Test single command delayed_standby.
-
-        :return: None
-        """
-
-        with patch("threading.Timer", autospec=True) as mock_timer:
-            mock_timer.return_value.return_value = mock_timer
-
-            self.assertIsNone(self.controller._standby_timer)
-            self.controller.delayed_standby(10)
-            self.controller._standby_timer.start.assert_called_once_with()
-
-    def test_delayed_standby_with_delayed_standby(self):
-        """
-        Test single command delayed_standby when there was a pending delayed_standby.
-
-        :return: None
-        """
-
-        with patch("threading.Timer", spec=True) as mock_timer:
-            mock_timer.return_value = mock_timer
-
-            # Simulate there was a previous timer.
-            self.controller._standby_timer = mock_timer
-
-            self.controller.delayed_standby(10)
-            mock_timer.cancel.assert_called_once_with()
-            self.controller._standby_timer.start.assert_called_once_with()
-
-    def test_sequence_1(self):
-        """
-        Test sequence play-delayed_standby-play before timer goes off.
-
-        :return:
-        """
-
-        with patch("threading.Timer", spec=True) as mock_timer:
-            mock_timer.return_value = mock_timer
-
-            self.controller.power_on()
-            self.controller._cec_process.communicate.assert_called_with(input="on 5", timeout=15)
-
-            self.controller.delayed_standby(10)
-            self.controller._standby_timer.start.assert_called_once_with()
-
-            # Previous delayed_standby() is still active, the timer is cancelled and no cec command is executed.
-            self.controller.power_on()
-            mock_timer.cancel.assert_called_once_with()
-
-    def test_sequence_2(self):
-        """
-        Test sequence play-delayed_standby-standby-play
-
-        :return:
-        """
-
-        with patch("threading.Timer", spec=True):
-            self.controller.power_on()
-            self.controller._cec_process.communicate.assert_called_with(input="on 5", timeout=15)
-
-            self.controller.delayed_standby(10)
-            self.controller._standby_timer.start.assert_called_once_with()
-
-            # When timer goes of it calls standby()
-            mock_timer = self.controller._standby_timer
-            self.controller.standby()
-            mock_timer.cancel.assert_called_once_with()
-            self.controller._cec_process.communicate.assert_called_with(input="standby 5", timeout=15)
-
-            self.controller.power_on()
-            self.controller._cec_process.communicate.assert_called_with(input="on 5", timeout=15)
-
 
 class DeviceControllerInitCleanupTest(unittest.TestCase):
     """
     Test class to test basic initialization and cleanup.
     """
 
-    def test_enter_exit(self):
-        """
-        Test that the process for the cec controller is correctly started and terminated when using with.
-
-        :return: None
-        """
-
-        from audio_device_controller.device_controller import DeviceControllerCec
-
-        with patch("subprocess.Popen", spec=True) as mock_popen:
-            mock_popen.return_value = mock_popen
-            mock_popen.communicate.return_value = ("logical address 5", "")
-
-            with DeviceControllerCec() as controller:
-                # Control the cec-client is invoked properly, audio device searched and found
-                import subprocess
-                mock_popen.assert_called_once_with(["cec-client"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-                mock_popen.communicate.assert_called_once_with(input="lad", timeout=15)
-
-                # Make sure there's a timer to see it is cancelled properly.
-                with patch("threading.Timer", spec=True) as mock_timer:
-                    mock_timer.return_value = mock_timer
-                    controller.power_on()
-                    controller.delayed_standby(10)
-                    mock_timer.start.assert_called_once_with()
-
-            # Expected actions for __exit__
-            mock_popen.terminate.assert_called_once_with()
-            mock_timer.cancel.assert_called_once_with()
-
-    def test_no_cec(self):
+    def test_initialize_no_cec(self):
         """
         Test when the initialization fails due to non-existing cec controller.
 
@@ -280,7 +402,7 @@ class DeviceControllerInitCleanupTest(unittest.TestCase):
                 controller.initialize()
             self.assertTrue("cec-client not found." in str(context.exception))
 
-    def test_no_audio(self):
+    def test_initialize_no_audio(self):
         """
         Test when there's no audio device connected to the hdmi bus.
 
@@ -324,24 +446,22 @@ class DeviceControllerInitCleanupTest(unittest.TestCase):
             mock_popen.communicate.assert_called_once_with(input="lad", timeout=15)
             self.assertTrue("cec-client unresponsive, terminated." in str(context.exception))
 
-    def test_cleanup_before_initialization(self):
+    @staticmethod
+    def test_cleanup_before_initialization():
         """
         Test no action is taken if cleanup is called before initialization.
 
         :return: None
         """
 
-        from audio_device_controller.device_controller import DeviceController
+        from audio_device_controller.device_controller import DeviceControllerCec
 
-        controller = DeviceController()
-        controller._cec_process = Mock()
-        controller._standby_timer = Mock()
-
+        # If something is wrong an exception will be raised...
+        controller = DeviceControllerCec()
         controller.cleanup()
-        controller._cec_process.terminate.assert_not_called()
-        controller._standby_timer.cancel.assert_not_called()
 
-    def test_initialize_twice(self):
+    @staticmethod
+    def test_initialize_twice():
         """
         Test that initialization of an already-initialized controller doesn't do anything.
 
@@ -379,21 +499,29 @@ class EventHandlerTest(unittest.TestCase):
         :return: None
         """
 
-        self.mock_controller                      = Mock()
-        self.mock_config                          = Mock()
-        self.mock_config.REST_URL                 = "http://localhost:4444/test"
-        self.mock_config.REST_SUCCESS_CODE        = 200
-        self.mock_config.REST_NOT_FOUND_CODE      = 404
-        self.mock_config.EVENTS                   = "Events"
-        self.mock_config.PB_NOTIF                 = "Notification"
-        self.mock_config.PB_NOTIF_STOP            = 0
-        self.mock_config.PB_NOTIF_PLAY            = 1
-        self.mock_config.PB_NOTIF_PAUSE           = 2
-        self.mock_config.PB_NOTIF_ACTIVE_DEVICE   = 3
-        self.mock_config.PB_NOTIF_INACTIVE_DEVICE = 4
-        self.mock_config.POWER_OFF_DELAY_MINS     = 10
+        from audio_device_controller.session_handler import SessionHandler
+        from audio_device_controller.config_options import ConfigOptions
 
-        self.ev_handler = EventHandler(self.mock_controller, self.mock_config)
+        self.mock_session                          = Mock(spec=SessionHandler)
+        self.mock_config                           = Mock(spec=ConfigOptions)
+        self.mock_config._REST_URL                 = "http://localhost:4444/test"
+        self.mock_config._REST_SUCCESS_CODE        = 200
+        self.mock_config._REST_NOT_FOUND_CODE      = 404
+        self.mock_config._EVENTS                   = "Events"
+        self.mock_config._PB_NOTIF                 = "Notification"
+        self.mock_config._PB_NOTIF_STOP            = 0
+        self.mock_config._PB_NOTIF_PLAY            = 1
+        self.mock_config._PB_NOTIF_PAUSE           = 2
+        self.mock_config._PB_NOTIF_ACTIVE_DEVICE   = 3
+        self.mock_config._PB_NOTIF_INACTIVE_DEVICE = 4
+        self.mock_config._POWER_OFF_DELAY_MINS     = 10
+
+        self.ev_handler = EventHandler(self.mock_session, self.mock_config)
+        self.mock_session.active(True)
+        self.mock_session.reset_mock()
+
+    def tearDown(self):
+        self.mock_session.cleanup()
 
     def test_not_json(self):
         """
@@ -423,9 +551,9 @@ class EventHandlerTest(unittest.TestCase):
         with self.assertRaises(EventError) as context:
             self.ev_handler.process_json_response(json)
         self.assertTrue("Response malformed." in str(context.exception))
-        self.mock_controller.standby.assert_not_called()
-        self.mock_controller.power_on.assert_not_called()
-        self.mock_controller.delayed_standby.assert_not_called()
+        self.mock_session.play.assert_not_called()
+        self.mock_session.pause.assert_not_called()
+        self.mock_session.active.assert_not_called()
 
     def test_not_recognised_events(self):
         """
@@ -438,9 +566,9 @@ class EventHandlerTest(unittest.TestCase):
         json = {"Events": [{"Notif": 0}]}
 
         self.ev_handler.process_json_response(json)
-        self.mock_controller.standby.assert_not_called()
-        self.mock_controller.power_on.assert_not_called()
-        self.mock_controller.delayed_standby.assert_not_called()
+        self.mock_session.play.assert_not_called()
+        self.mock_session.pause.assert_not_called()
+        self.mock_session.active.assert_not_called()
 
     def test_single_known_pb_events(self):
         """
@@ -450,34 +578,34 @@ class EventHandlerTest(unittest.TestCase):
         """
 
         # Stop
-        json = {self.mock_config.EVENTS: [{self.mock_config.PB_NOTIF: self.mock_config.PB_NOTIF_STOP}]}
+        json = {self.mock_config._EVENTS: [{self.mock_config._PB_NOTIF: self.mock_config._PB_NOTIF_STOP}]}
         self.ev_handler.process_json_response(json)
-        self.mock_controller.standby.assert_called_once_with()
-        self.mock_controller.reset_mock()
+        self.mock_session.pause.assert_called_once_with(600)
+        self.mock_session.reset_mock()
 
         # Play
-        json = {self.mock_config.EVENTS: [{self.mock_config.PB_NOTIF: self.mock_config.PB_NOTIF_PLAY}]}
+        json = {self.mock_config._EVENTS: [{self.mock_config._PB_NOTIF: self.mock_config._PB_NOTIF_PLAY}]}
         self.ev_handler.process_json_response(json)
-        self.mock_controller.power_on.assert_called_once_with()
-        self.mock_controller.reset_mock()
+        self.mock_session.play.assert_called_once_with()
+        self.mock_session.reset_mock()
 
         # Pause
-        json = {self.mock_config.EVENTS: [{self.mock_config.PB_NOTIF: self.mock_config.PB_NOTIF_PAUSE}]}
+        json = {self.mock_config._EVENTS: [{self.mock_config._PB_NOTIF: self.mock_config._PB_NOTIF_PAUSE}]}
         self.ev_handler.process_json_response(json)
-        self.mock_controller.delayed_standby.assert_called_once_with(self.mock_config.POWER_OFF_DELAY_MINS*60)
-        self.mock_controller.reset_mock()
+        self.mock_session.pause.assert_called_once_with(self.mock_config._POWER_OFF_DELAY_MINS * 60)
+        self.mock_session.reset_mock()
 
         # Active device
-        json = {self.mock_config.EVENTS: [{self.mock_config.PB_NOTIF: self.mock_config.PB_NOTIF_ACTIVE_DEVICE}]}
+        json = {self.mock_config._EVENTS: [{self.mock_config._PB_NOTIF: self.mock_config._PB_NOTIF_ACTIVE_DEVICE}]}
         self.ev_handler.process_json_response(json)
-        self.mock_controller.power_on.assert_called_once_with()
-        self.mock_controller.reset_mock()
+        self.mock_session.active.assert_called_once_with(True)
+        self.mock_session.reset_mock()
 
         # Inactive device
-        json = {self.mock_config.EVENTS: [{self.mock_config.PB_NOTIF: self.mock_config.PB_NOTIF_INACTIVE_DEVICE}]}
+        json = {self.mock_config._EVENTS: [{self.mock_config._PB_NOTIF: self.mock_config._PB_NOTIF_INACTIVE_DEVICE}]}
         self.ev_handler.process_json_response(json)
-        self.mock_controller.delayed_standby.assert_called_once_with(self.mock_config.POWER_OFF_DELAY_MINS)
-        self.mock_controller.reset_mock()
+        self.mock_session.active.assert_called_once_with(False)
+        self.mock_session.reset_mock()
 
     def test_several_known_pb_events(self):
         """
@@ -487,16 +615,16 @@ class EventHandlerTest(unittest.TestCase):
         """
 
         # Stop, play, pause, active device, inactive device
-        json = {self.mock_config.EVENTS: [{self.mock_config.PB_NOTIF: self.mock_config.PB_NOTIF_STOP},
-                                          {self.mock_config.PB_NOTIF: self.mock_config.PB_NOTIF_PLAY},
-                                          {self.mock_config.PB_NOTIF: self.mock_config.PB_NOTIF_PAUSE},
-                                          {self.mock_config.PB_NOTIF: self.mock_config.PB_NOTIF_ACTIVE_DEVICE},
-                                          {self.mock_config.PB_NOTIF: self.mock_config.PB_NOTIF_INACTIVE_DEVICE}]}
+        json = {self.mock_config._EVENTS: [{self.mock_config._PB_NOTIF: self.mock_config._PB_NOTIF_STOP},
+                                           {self.mock_config._PB_NOTIF: self.mock_config._PB_NOTIF_PLAY},
+                                           {self.mock_config._PB_NOTIF: self.mock_config._PB_NOTIF_PAUSE},
+                                           {self.mock_config._PB_NOTIF: self.mock_config._PB_NOTIF_ACTIVE_DEVICE},
+                                           {self.mock_config._PB_NOTIF: self.mock_config._PB_NOTIF_INACTIVE_DEVICE}]}
 
         self.ev_handler.process_json_response(json)
-        self.assertTrue(self.mock_controller.power_on.call_count == 2)
-        self.assertTrue(self.mock_controller.standby.call_count == 1)
-        self.assertTrue(self.mock_controller.delayed_standby.call_count == 2)
+        self.assertTrue(self.mock_session.pause.call_count == 2)
+        self.assertTrue(self.mock_session.play.call_count == 1)
+        self.assertTrue(self.mock_session.active.call_count == 2)
 
     def test_single_unknown_pb_events(self):
         """
@@ -506,11 +634,11 @@ class EventHandlerTest(unittest.TestCase):
         """
 
         # Unknown event type, should be ignored
-        json = {self.mock_config.EVENTS: [{self.mock_config.PB_NOTIF: -1}]}
+        json = {self.mock_config._EVENTS: [{self.mock_config._PB_NOTIF: -1}]}
         self.ev_handler.process_json_response(json)
-        self.mock_controller.power_on.assert_not_called()
-        self.mock_controller.standby.assert_not_called()
-        self.mock_controller.delayed_standby.assert_not_called()
+        self.mock_session.play.assert_not_called()
+        self.mock_session.pause.assert_not_called()
+        self.mock_session.active.assert_not_called()
 
     def test_listen_for_events_200(self):
         """
@@ -521,12 +649,14 @@ class EventHandlerTest(unittest.TestCase):
 
         with patch("requests.get") as get_mock:
             self.mock_requests_get = get_mock
-            self.mock_requests_get.return_value.status_code = self.mock_config.REST_SUCCESS_CODE
+            self.mock_requests_get.return_value.status_code = self.mock_config._REST_SUCCESS_CODE
             self.mock_requests_get.return_value.json.return_value =\
-                {self.mock_config.EVENTS: [{self.mock_config.PB_NOTIF: self.mock_config.PB_NOTIF_STOP}]}
+                {self.mock_config._EVENTS: [{self.mock_config._PB_NOTIF: self.mock_config._PB_NOTIF_STOP}]}
 
             self.ev_handler.listen_for_events()
-            self.mock_controller.standby.assert_called_once_with()
+            self.mock_session.pause.assert_called_once_with(600)
+            self.mock_session.play.assert_not_called()
+            self.mock_session.active.assert_not_called()
 
     def test_listen_for_events_200_malformed(self):
         """
@@ -537,15 +667,15 @@ class EventHandlerTest(unittest.TestCase):
 
         with patch("requests.get") as get_mock:
             self.mock_requests_get = get_mock
-            self.mock_requests_get.return_value.status_code = self.mock_config.REST_SUCCESS_CODE
+            self.mock_requests_get.return_value.status_code = self.mock_config._REST_SUCCESS_CODE
             self.mock_requests_get.return_value.json.return_value = 123456789
 
             with self.assertRaises(EventError) as context:
                 self.ev_handler.listen_for_events()
 
-            self.mock_controller.standby.assert_not_called()
-            self.mock_controller.power_on.assert_not_called()
-            self.mock_controller.delayed_standby.assert_not_called()
+            self.mock_session.pause.assert_not_called()
+            self.mock_session.play.assert_not_called()
+            self.mock_session.active.assert_not_called()
         self.assertTrue("Response from " in str(context.exception))
 
     def test_listen_for_events_400(self):
@@ -556,7 +686,7 @@ class EventHandlerTest(unittest.TestCase):
         """
 
         with patch("requests.get") as mock_get:
-            mock_get.return_value.status_code = self.mock_config.REST_NOT_FOUND_CODE
+            mock_get.return_value.status_code = self.mock_config._REST_NOT_FOUND_CODE
             with self.assertRaises(EventError) as context:
                 self.ev_handler.listen_for_events()
             self.assertTrue("responded with status code" in str(context.exception))
