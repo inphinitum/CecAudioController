@@ -30,7 +30,8 @@ class SessionHandlerTest(unittest.TestCase):
     Unit tests for the PlayerDeviceCoordinator class in audio_device_controller.
     """
 
-    def test_enter_exit(self):
+    @staticmethod
+    def test_enter_exit():
         """
         Test that all the resources are correctly initialized and released.
 
@@ -61,7 +62,8 @@ class SessionHandlerTest(unittest.TestCase):
             mock_timer.cancel.assert_called_once_with()
             session._pause_timer = None
 
-    def test_player_active_prev_inactive(self):
+    @staticmethod
+    def test_player_active_prev_inactive():
         """
         Test active command when session was inactive.
 
@@ -77,7 +79,8 @@ class SessionHandlerTest(unittest.TestCase):
             mock_dev_ctrl.power_on.assert_called_with()
             mock_dev_ctrl.standby.assert_not_called()
 
-    def test_player_active_prev_active(self):
+    @staticmethod
+    def test_player_active_prev_active():
         """
         Test active command when session was already active.
 
@@ -96,7 +99,8 @@ class SessionHandlerTest(unittest.TestCase):
             mock_dev_ctrl.power_on.assert_not_called()
             mock_dev_ctrl.standby.assert_not_called()
 
-    def test_player_inactive_prev_active(self):
+    @staticmethod
+    def test_player_inactive_prev_active():
         """
         Test inactive command when session was active.
 
@@ -115,7 +119,8 @@ class SessionHandlerTest(unittest.TestCase):
             mock_dev_ctrl.power_on.assert_not_called()
             mock_dev_ctrl.standby.assert_called_once_with()
 
-    def test_player_inactive_prev_inactive(self):
+    @staticmethod
+    def test_player_inactive_prev_inactive():
         """
         Test inactive command when session was already inactive.
 
@@ -157,7 +162,8 @@ class SessionHandlerTest(unittest.TestCase):
                 mock_dev_ctrl.power_on.assert_not_called()
                 mock_dev_ctrl.standby.assert_called_once_with()
 
-    def test_play_active(self):
+    @staticmethod
+    def test_play_active():
         """
         Test play command when session is active and not paused.
 
@@ -200,7 +206,8 @@ class SessionHandlerTest(unittest.TestCase):
                 mock_dev_ctrl.power_on.not_called()
                 mock_dev_ctrl.standby.not_called()
 
-    def test_play_inactive(self):
+    @staticmethod
+    def test_play_inactive():
         """
         Test play command when session is inactive.
 
@@ -216,7 +223,8 @@ class SessionHandlerTest(unittest.TestCase):
             mock_dev_ctrl.power_on.not_called()
             mock_dev_ctrl.standby.not_called()
 
-    def test_pause_active(self):
+    @staticmethod
+    def test_pause_active():
         """
         Test pause command when session is active.
 
@@ -234,11 +242,16 @@ class SessionHandlerTest(unittest.TestCase):
                 session.active(True)
                 session.pause(10)
 
-                mock_timer.start.called_once_with_args(10)
+                mock_timer.start.called_once_with_args(10, session._callback_pause_timeout)
                 mock_dev_ctrl.power_on.not_called()
                 mock_dev_ctrl.standby.not_called()
 
-    def test_pause_active_prev_pause(self):
+                # Timer goes off
+                session._callback_pause_timeout()
+                mock_dev_ctrl.standby.assert_called_once_with()
+
+    @staticmethod
+    def test_pause_active_prev_pause():
         """
         Test pause command when session is active and there was a previous pause.
 

@@ -103,5 +103,16 @@ class SessionHandler:
         if self._active:
             from threading import Timer
             if self._pause_timer is None:
-                self._pause_timer = Timer(seconds, self._dev_controller.standby)
+                self._pause_timer = Timer(seconds, self._callback_pause_timeout)
                 self._pause_timer.start()
+
+    def _callback_pause_timeout(self):
+        """
+        Callback for the timer started on pause().
+
+        :return: None
+        """
+
+        if self._active and self._dev_on:
+            self._dev_controller.standby()
+            self._dev_on = False
