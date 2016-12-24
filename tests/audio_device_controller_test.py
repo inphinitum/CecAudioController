@@ -19,10 +19,7 @@ from unittest.mock import patch
 from unittest.mock import Mock
 from unittest.mock import call
 
-from audio_device_controller.event_handler import EventError
-from audio_device_controller.event_handler import EventHandler
-from audio_device_controller.config_options import ConfigOptions
-from audio_device_controller.session_handler import SessionHandler
+import audio_device_controller
 
 
 class SessionHandlerTest(unittest.TestCase):
@@ -30,7 +27,8 @@ class SessionHandlerTest(unittest.TestCase):
     Unit tests for the PlayerDeviceCoordinator class in audio_device_controller.
     """
 
-    def match_internal_state(self, session, expected_state):
+    @staticmethod
+    def match_internal_state(session, expected_state):
         """
         Help method to check that the internal state of the passed SessionHandler matches the expected one.
 
@@ -74,17 +72,17 @@ class SessionHandlerTest(unittest.TestCase):
         with patch("threading.Timer") as mock_timer:
             mock_timer.return_value = mock_timer
 
-            from audio_device_controller.device_controller import DeviceController
-            mock_dev_ctrl = Mock(spec=DeviceController)
+            from audio_device_controller.core import AudioDeviceController
+            mock_dev_ctrl = Mock(spec=AudioDeviceController)
 
-            with SessionHandler(mock_dev_ctrl):
+            with audio_device_controller.core.Session(mock_dev_ctrl):
                 mock_dev_ctrl.initialize.assert_called_once_with()
 
             mock_dev_ctrl.standby.assert_called_once_with()
             mock_dev_ctrl.cleanup.assert_called_once_with()
             mock_dev_ctrl.reset_mock()
 
-            with SessionHandler(mock_dev_ctrl) as session:
+            with audio_device_controller.core.Session(mock_dev_ctrl) as session:
                 session.active(True)
                 session.play()
                 session.pause(10)
@@ -102,10 +100,10 @@ class SessionHandlerTest(unittest.TestCase):
         :return: None
         """
 
-        from audio_device_controller.device_controller import DeviceController
-        mock_dev_ctrl = Mock(spec=DeviceController)
+        from audio_device_controller.core import AudioDeviceController
+        mock_dev_ctrl = Mock(spec=AudioDeviceController)
 
-        with SessionHandler(mock_dev_ctrl) as session:
+        with audio_device_controller.core.Session(mock_dev_ctrl) as session:
             session.active(True)
             mock_dev_ctrl.power_on.assert_called_with()
             mock_dev_ctrl.standby.assert_not_called()
@@ -119,10 +117,10 @@ class SessionHandlerTest(unittest.TestCase):
         :return: None
         """
 
-        from audio_device_controller.device_controller import DeviceController
-        mock_dev_ctrl = Mock(spec=DeviceController)
+        from audio_device_controller.core import AudioDeviceController
+        mock_dev_ctrl = Mock(spec=AudioDeviceController)
 
-        with SessionHandler(mock_dev_ctrl) as session:
+        with audio_device_controller.core.Session(mock_dev_ctrl) as session:
             session.active(True)
             mock_dev_ctrl.reset_mock()
 
@@ -140,10 +138,10 @@ class SessionHandlerTest(unittest.TestCase):
         :return: None
         """
 
-        from audio_device_controller.device_controller import DeviceController
-        mock_dev_ctrl = Mock(spec=DeviceController)
+        from audio_device_controller.core import AudioDeviceController
+        mock_dev_ctrl = Mock(spec=AudioDeviceController)
 
-        with SessionHandler(mock_dev_ctrl) as session:
+        with audio_device_controller.core.Session(mock_dev_ctrl) as session:
             session.active(True)
             mock_dev_ctrl.reset_mock()
 
@@ -161,10 +159,10 @@ class SessionHandlerTest(unittest.TestCase):
         :return: None
         """
 
-        from audio_device_controller.device_controller import DeviceController
-        mock_dev_ctrl = Mock(spec=DeviceController)
+        from audio_device_controller.core import AudioDeviceController
+        mock_dev_ctrl = Mock(spec=AudioDeviceController)
 
-        with SessionHandler(mock_dev_ctrl) as session:
+        with audio_device_controller.core.Session(mock_dev_ctrl) as session:
             session.active(False)
             mock_dev_ctrl.power_on.assert_not_called()
             mock_dev_ctrl.standby.assert_not_called()
@@ -182,10 +180,10 @@ class SessionHandlerTest(unittest.TestCase):
         with patch("threading.Timer") as mock_timer:
             mock_timer.return_value = mock_timer
 
-            from audio_device_controller.device_controller import DeviceController
-            mock_dev_ctrl = Mock(spec=DeviceController)
+            from audio_device_controller.core import AudioDeviceController
+            mock_dev_ctrl = Mock(spec=AudioDeviceController)
 
-            with SessionHandler(mock_dev_ctrl) as session:
+            with audio_device_controller.core.Session(mock_dev_ctrl) as session:
                 session.active(True)
                 session.pause(10)
                 mock_dev_ctrl.reset_mock()
@@ -207,10 +205,10 @@ class SessionHandlerTest(unittest.TestCase):
         :return: None
         """
 
-        from audio_device_controller.device_controller import DeviceController
-        mock_dev_ctrl = Mock(spec=DeviceController)
+        from audio_device_controller.core import AudioDeviceController
+        mock_dev_ctrl = Mock(spec=AudioDeviceController)
 
-        with SessionHandler(mock_dev_ctrl) as session:
+        with audio_device_controller.core.Session(mock_dev_ctrl) as session:
             session.active(True)
             mock_dev_ctrl.reset_mock()
 
@@ -228,10 +226,10 @@ class SessionHandlerTest(unittest.TestCase):
         :return: None
         """
 
-        from audio_device_controller.device_controller import DeviceController
-        mock_dev_ctrl = Mock(spec=DeviceController)
+        from audio_device_controller.core import AudioDeviceController
+        mock_dev_ctrl = Mock(spec=AudioDeviceController)
 
-        with SessionHandler(mock_dev_ctrl) as session:
+        with audio_device_controller.core.Session(mock_dev_ctrl) as session:
             session.active(True)
             session._callback_pause_timeout()
             mock_dev_ctrl.reset_mock()
@@ -253,10 +251,10 @@ class SessionHandlerTest(unittest.TestCase):
         with patch("threading.Timer") as mock_timer:
             mock_timer.return_value = mock_timer
 
-            from audio_device_controller.device_controller import DeviceController
-            mock_dev_ctrl = Mock(spec=DeviceController)
+            from audio_device_controller.core import AudioDeviceController
+            mock_dev_ctrl = Mock(spec=AudioDeviceController)
 
-            with SessionHandler(mock_dev_ctrl) as session:
+            with audio_device_controller.core.Session(mock_dev_ctrl) as session:
                 session.active(True)
                 session.pause(10)
                 mock_dev_ctrl.reset_mock()
@@ -276,10 +274,10 @@ class SessionHandlerTest(unittest.TestCase):
         :return: None
         """
 
-        from audio_device_controller.device_controller import DeviceController
-        mock_dev_ctrl = Mock(spec=DeviceController)
+        from audio_device_controller.core import AudioDeviceController
+        mock_dev_ctrl = Mock(spec=AudioDeviceController)
 
-        with SessionHandler(mock_dev_ctrl) as session:
+        with audio_device_controller.core.Session(mock_dev_ctrl) as session:
             session.play()
             mock_dev_ctrl.power_on.not_called()
             mock_dev_ctrl.standby.not_called()
@@ -297,10 +295,10 @@ class SessionHandlerTest(unittest.TestCase):
         with patch("threading.Timer") as mock_timer:
             mock_timer.return_value = mock_timer
 
-            from audio_device_controller.device_controller import DeviceController
-            mock_dev_ctrl = Mock(spec=DeviceController)
+            from audio_device_controller.core import AudioDeviceController
+            mock_dev_ctrl = Mock(spec=AudioDeviceController)
 
-            with SessionHandler(mock_dev_ctrl) as session:
+            with audio_device_controller.core.Session(mock_dev_ctrl) as session:
                 session.active(True)
                 session.pause(10)
 
@@ -321,10 +319,10 @@ class SessionHandlerTest(unittest.TestCase):
         with patch("threading.Timer") as mock_timer:
             mock_timer.return_value = mock_timer
 
-            from audio_device_controller.device_controller import DeviceController
-            mock_dev_ctrl = Mock(spec=DeviceController)
+            from audio_device_controller.core import AudioDeviceController
+            mock_dev_ctrl = Mock(spec=AudioDeviceController)
 
-            with SessionHandler(mock_dev_ctrl) as session:
+            with audio_device_controller.core.Session(mock_dev_ctrl) as session:
                 session.active(True)
                 session.pause(10)
 
@@ -349,10 +347,10 @@ class SessionHandlerTest(unittest.TestCase):
         with patch("threading.Timer") as mock_timer:
             mock_timer.return_value = mock_timer
 
-            from audio_device_controller.device_controller import DeviceController
-            mock_dev_ctrl = Mock(spec=DeviceController)
+            from audio_device_controller.core import AudioDeviceController
+            mock_dev_ctrl = Mock(spec=AudioDeviceController)
 
-            with SessionHandler(mock_dev_ctrl) as session:
+            with audio_device_controller.core.Session(mock_dev_ctrl) as session:
                 session.active(True)
                 session.pause(10)
                 mock_timer.reset_mock()
@@ -376,10 +374,10 @@ class SessionHandlerTest(unittest.TestCase):
         with patch("threading.Timer") as mock_timer:
             mock_timer.return_value = mock_timer
 
-            from audio_device_controller.device_controller import DeviceController
-            mock_dev_ctrl = Mock(spec=DeviceController)
+            from audio_device_controller.core import AudioDeviceController
+            mock_dev_ctrl = Mock(spec=AudioDeviceController)
 
-            with SessionHandler(mock_dev_ctrl) as session:
+            with audio_device_controller.core.Session(mock_dev_ctrl) as session:
                 session.pause(10)
                 self.assertIsNone(session._pause_timer)
                 mock_dev_ctrl.power_on.not_called()
@@ -406,9 +404,9 @@ class DeviceControllerCecTest(unittest.TestCase):
 
             # Control the cec-client is invoked properly, audio device searched and found
             import subprocess
-            from audio_device_controller.device_controller import DeviceControllerCec
+            from audio_device_controller.core import AudioDeviceControllerCec
 
-            self.controller = DeviceControllerCec()
+            self.controller = AudioDeviceControllerCec()
             self.controller.initialize()
             self.controller._cec_process.assert_called_once_with(["cec-client"],
                                                                  stdin=subprocess.PIPE,
@@ -444,7 +442,7 @@ class DeviceControllerCecTest(unittest.TestCase):
         """
 
         # Control that the command to power on the audio device is sent, and timer not cancelled
-        from audio_device_controller.device_controller import CecError
+        from audio_device_controller.core import CecError
         from subprocess import TimeoutExpired
 
         self.controller._cec_process.communicate.side_effect = TimeoutExpired("lad", 15)
@@ -473,7 +471,7 @@ class DeviceControllerCecTest(unittest.TestCase):
         """
 
         # Control that the command to standby the audio device is sent, and timer not cancelled
-        from audio_device_controller.device_controller import CecError
+        from audio_device_controller.core import CecError
         from subprocess import TimeoutExpired
 
         self.controller._cec_process.communicate.side_effect = TimeoutExpired("standby 5", 15)
@@ -496,13 +494,13 @@ class DeviceControllerInitCleanupTest(unittest.TestCase):
         """
         with patch("subprocess.Popen", spec=True) as mock_popen:
             # Control the cec-client is invoked properly, audio device searched and found.
-            from audio_device_controller.device_controller import DeviceControllerCec
-            from audio_device_controller.device_controller import CecError
+            from audio_device_controller.core import AudioDeviceControllerCec
+            from audio_device_controller.core import CecError
 
             mock_popen.side_effect = OSError()
 
             with self.assertRaises(CecError) as context:
-                controller = DeviceControllerCec()
+                controller = AudioDeviceControllerCec()
                 controller.initialize()
             self.assertTrue("cec-client not found." in str(context.exception))
 
@@ -514,14 +512,14 @@ class DeviceControllerInitCleanupTest(unittest.TestCase):
         """
         with patch("subprocess.Popen", spec=True) as mock_popen:
             # Control the cec-client is invoked properly, audio device searched and found.
-            from audio_device_controller.device_controller import DeviceControllerCec
-            from audio_device_controller.device_controller import CecError
+            from audio_device_controller.core import AudioDeviceControllerCec
+            from audio_device_controller.core import CecError
 
             mock_popen.return_value = mock_popen
             mock_popen.communicate.return_value = ("", "")
 
             with self.assertRaises(CecError) as context:
-                controller = DeviceControllerCec()
+                controller = AudioDeviceControllerCec()
                 controller.initialize()
 
             self.assertTrue("cec-client does not find audio device." in str(context.exception))
@@ -540,11 +538,11 @@ class DeviceControllerInitCleanupTest(unittest.TestCase):
 
             # Control the cec-client is invoked properly, audio device searched and found
             import subprocess
-            from audio_device_controller.device_controller import DeviceControllerCec
+            from audio_device_controller.core import AudioDeviceControllerCec
 
-            from audio_device_controller.device_controller import CecError
+            from audio_device_controller.core import CecError
             with self.assertRaises(CecError) as context:
-                self.controller = DeviceControllerCec()
+                self.controller = AudioDeviceControllerCec()
                 self.controller.initialize()
             mock_popen.assert_called_once_with(["cec-client"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
             mock_popen.communicate.assert_called_once_with(input="lad", timeout=15)
@@ -558,10 +556,10 @@ class DeviceControllerInitCleanupTest(unittest.TestCase):
         :return: None
         """
 
-        from audio_device_controller.device_controller import DeviceControllerCec
+        from audio_device_controller.core import AudioDeviceControllerCec
 
         # If something is wrong an exception will be raised...
-        controller = DeviceControllerCec()
+        controller = AudioDeviceControllerCec()
         controller.cleanup()
 
     @staticmethod
@@ -572,13 +570,13 @@ class DeviceControllerInitCleanupTest(unittest.TestCase):
         :return: None
         """
 
-        from audio_device_controller.device_controller import DeviceControllerCec
+        from audio_device_controller.core import AudioDeviceControllerCec
 
         with patch("subprocess.Popen", spec=True) as mock_popen:
             mock_popen.return_value = mock_popen
             mock_popen.communicate.return_value = ("logical address 5", "")
 
-            with DeviceControllerCec() as controller:
+            with AudioDeviceControllerCec() as controller:
                 # Control the cec-client is invoked properly, audio device searched and found
                 import subprocess
                 mock_popen.assert_called_once_with(["cec-client"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -602,12 +600,11 @@ class EventHandlerTest(unittest.TestCase):
 
         :return: None
         """
+        import audio_device_controller.core
+        import audio_device_controller.events
 
-        from audio_device_controller.session_handler import SessionHandler
-        from audio_device_controller.config_options import ConfigOptions
-
-        self.mock_session                          = Mock(spec=SessionHandler)
-        self.mock_config                           = Mock(spec=ConfigOptions)
+        self.mock_session                          = Mock(spec=audio_device_controller.core.Session)
+        self.mock_config                           = Mock(spec=audio_device_controller.events.ConfigOptions)
         self.mock_config._REST_URL                 = "http://localhost:4444/test"
         self.mock_config._REST_SUCCESS_CODE        = 200
         self.mock_config._REST_NOT_FOUND_CODE      = 404
@@ -620,7 +617,7 @@ class EventHandlerTest(unittest.TestCase):
         self.mock_config._PB_NOTIF_INACTIVE_DEVICE = 4
         self.mock_config._POWER_OFF_DELAY_MINS     = 10
 
-        self.ev_handler = EventHandler(self.mock_session, self.mock_config)
+        self.ev_handler = audio_device_controller.events.EventHandler(self.mock_session, self.mock_config)
         self.mock_session.active(True)
         self.mock_session.reset_mock()
 
@@ -633,8 +630,9 @@ class EventHandlerTest(unittest.TestCase):
 
         :return: None
         """
+        import audio_device_controller.events
 
-        with self.assertRaises(EventError) as context:
+        with self.assertRaises(audio_device_controller.events.EventError) as context:
             response = "0123456789"
             self.ev_handler.process_json_response(response)
         self.assertTrue("Response malformed." in str(context.exception))
@@ -648,11 +646,12 @@ class EventHandlerTest(unittest.TestCase):
 
         :return: None
         """
+        import audio_device_controller.events
 
         # EVENTS top element not present
         json = {"Ev": [{"Notif": 0}]}
 
-        with self.assertRaises(EventError) as context:
+        with self.assertRaises(audio_device_controller.events.EventError) as context:
             self.ev_handler.process_json_response(json)
         self.assertTrue("Response malformed." in str(context.exception))
         self.mock_session.play.assert_not_called()
@@ -768,13 +767,14 @@ class EventHandlerTest(unittest.TestCase):
 
         :return: None
         """
+        import audio_device_controller.events
 
         with patch("requests.get") as get_mock:
             self.mock_requests_get = get_mock
             self.mock_requests_get.return_value.status_code = self.mock_config._REST_SUCCESS_CODE
             self.mock_requests_get.return_value.json.return_value = 123456789
 
-            with self.assertRaises(EventError) as context:
+            with self.assertRaises(audio_device_controller.events.EventError) as context:
                 self.ev_handler.listen_for_events()
 
             self.mock_session.pause.assert_not_called()
@@ -788,10 +788,11 @@ class EventHandlerTest(unittest.TestCase):
 
         :return: None
         """
+        import audio_device_controller.events
 
         with patch("requests.get") as mock_get:
             mock_get.return_value.status_code = self.mock_config._REST_NOT_FOUND_CODE
-            with self.assertRaises(EventError) as context:
+            with self.assertRaises(audio_device_controller.events.EventError) as context:
                 self.ev_handler.listen_for_events()
             self.assertTrue("responded with status code" in str(context.exception))
 
@@ -807,8 +808,9 @@ class ConfigOptionsTest(unittest.TestCase):
 
         :return: None
         """
+        import audio_device_controller.events
 
-        self.config_options = ConfigOptions()
+        self.config_options = audio_device_controller.events.ConfigOptions()
 
     def test_read_from_file(self):
         """

@@ -18,10 +18,8 @@ limitations under the License.
 
 import argparse
 
-from audio_device_controller.config_options import ConfigOptions
-from audio_device_controller.device_controller import DeviceControllerCec
-from audio_device_controller.event_handler import EventHandler
-from audio_device_controller.session_handler import SessionHandler
+import audio_device_controller.core
+import audio_device_controller.events
 
 
 if __name__ == "__main__":
@@ -36,19 +34,18 @@ if __name__ == "__main__":
     group.add_argument("-event_listener", action="store_false")
     arguments = parser.parse_args()
 
-    with DeviceControllerCec() as controller:
+    with audio_device_controller.core.AudioDeviceControllerCec() as controller:
         if arguments.power_on:
             controller.power_on()
         elif arguments.standby:
             controller.standby()
         else:
-
-            with SessionHandler(controller) as session:
+            with audio_device_controller.core.Session(controller) as session:
                 # Gather configuration options
-                config = ConfigOptions()
+                config = audio_device_controller.events.ConfigOptions()
                 config.read_from_file()
 
                 print("Initialization OK, listening for events on " + config.REST_URL)
-                ev_handler = EventHandler(session, config)
+                ev_handler = audio_device_controller.events.EventHandler(session, config)
                 while True:
                     ev_handler.listen_for_events()
