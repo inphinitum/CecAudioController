@@ -603,19 +603,19 @@ class EventHandlerTest(unittest.TestCase):
         import audio_device_controller.core
         import audio_device_controller.events
 
-        self.mock_session                          = Mock(spec=audio_device_controller.core.Session)
-        self.mock_config                           = Mock(spec=audio_device_controller.events.ConfigOptions)
-        self.mock_config._REST_URL                 = "http://localhost:4444/test"
-        self.mock_config._REST_SUCCESS_CODE        = 200
-        self.mock_config._REST_NOT_FOUND_CODE      = 404
-        self.mock_config._EVENTS                   = "Events"
-        self.mock_config._PB_NOTIF                 = "Notification"
-        self.mock_config._PB_NOTIF_STOP            = 0
-        self.mock_config._PB_NOTIF_PLAY            = 1
-        self.mock_config._PB_NOTIF_PAUSE           = 2
-        self.mock_config._PB_NOTIF_ACTIVE_DEVICE   = 3
-        self.mock_config._PB_NOTIF_INACTIVE_DEVICE = 4
-        self.mock_config._POWER_OFF_DELAY_MINS     = 10
+        self.mock_session                         = Mock(spec=audio_device_controller.core.Session)
+        self.mock_config                          = Mock(spec=audio_device_controller.events.ConfigOptions)
+        self.mock_config.rest_url                 = "http://localhost:4444/test"
+        self.mock_config.rest_success_code        = 200
+        self.mock_config.rest_not_found_code      = 404
+        self.mock_config.events                   = "Events"
+        self.mock_config.pb_notif                 = "Notification"
+        self.mock_config.pb_notif_stop            = 0
+        self.mock_config.pb_notif_play            = 1
+        self.mock_config.pb_notif_pause           = 2
+        self.mock_config.pb_notif_active_device   = 3
+        self.mock_config.pb_notif_inactive_device = 4
+        self.mock_config.power_off_delay_mins     = 10
 
         self.ev_handler = audio_device_controller.events.EventHandler(self.mock_session, self.mock_config)
         self.mock_session.active(True)
@@ -681,31 +681,31 @@ class EventHandlerTest(unittest.TestCase):
         """
 
         # Stop
-        json = {self.mock_config._EVENTS: [{self.mock_config._PB_NOTIF: self.mock_config._PB_NOTIF_STOP}]}
+        json = {self.mock_config.events: [{self.mock_config.pb_notif: self.mock_config.pb_notif_stop}]}
         self.ev_handler.process_json_response(json)
         self.mock_session.pause.assert_called_once_with(600)
         self.mock_session.reset_mock()
 
         # Play
-        json = {self.mock_config._EVENTS: [{self.mock_config._PB_NOTIF: self.mock_config._PB_NOTIF_PLAY}]}
+        json = {self.mock_config.events: [{self.mock_config.pb_notif: self.mock_config.pb_notif_play}]}
         self.ev_handler.process_json_response(json)
         self.mock_session.play.assert_called_once_with()
         self.mock_session.reset_mock()
 
         # Pause
-        json = {self.mock_config._EVENTS: [{self.mock_config._PB_NOTIF: self.mock_config._PB_NOTIF_PAUSE}]}
+        json = {self.mock_config.events: [{self.mock_config.pb_notif: self.mock_config.pb_notif_pause}]}
         self.ev_handler.process_json_response(json)
-        self.mock_session.pause.assert_called_once_with(self.mock_config._POWER_OFF_DELAY_MINS * 60)
+        self.mock_session.pause.assert_called_once_with(self.mock_config.power_off_delay_mins * 60)
         self.mock_session.reset_mock()
 
         # Active device
-        json = {self.mock_config._EVENTS: [{self.mock_config._PB_NOTIF: self.mock_config._PB_NOTIF_ACTIVE_DEVICE}]}
+        json = {self.mock_config.events: [{self.mock_config.pb_notif: self.mock_config.pb_notif_active_device}]}
         self.ev_handler.process_json_response(json)
         self.mock_session.active.assert_called_once_with(True)
         self.mock_session.reset_mock()
 
         # Inactive device
-        json = {self.mock_config._EVENTS: [{self.mock_config._PB_NOTIF: self.mock_config._PB_NOTIF_INACTIVE_DEVICE}]}
+        json = {self.mock_config.events: [{self.mock_config.pb_notif: self.mock_config.pb_notif_inactive_device}]}
         self.ev_handler.process_json_response(json)
         self.mock_session.active.assert_called_once_with(False)
         self.mock_session.reset_mock()
@@ -718,16 +718,16 @@ class EventHandlerTest(unittest.TestCase):
         """
 
         # Stop, play, pause, active device, inactive device
-        json = {self.mock_config._EVENTS: [{self.mock_config._PB_NOTIF: self.mock_config._PB_NOTIF_STOP},
-                                           {self.mock_config._PB_NOTIF: self.mock_config._PB_NOTIF_PLAY},
-                                           {self.mock_config._PB_NOTIF: self.mock_config._PB_NOTIF_PAUSE},
-                                           {self.mock_config._PB_NOTIF: self.mock_config._PB_NOTIF_ACTIVE_DEVICE},
-                                           {self.mock_config._PB_NOTIF: self.mock_config._PB_NOTIF_INACTIVE_DEVICE}]}
+        json = {self.mock_config.events: [{self.mock_config.pb_notif: self.mock_config.pb_notif_stop},
+                                          {self.mock_config.pb_notif: self.mock_config.pb_notif_play},
+                                          {self.mock_config.pb_notif: self.mock_config.pb_notif_pause},
+                                          {self.mock_config.pb_notif: self.mock_config.pb_notif_active_device},
+                                          {self.mock_config.pb_notif: self.mock_config.pb_notif_inactive_device}]}
 
         self.ev_handler.process_json_response(json)
-        self.assertTrue(self.mock_session.pause.call_count == 2)
-        self.assertTrue(self.mock_session.play.call_count == 1)
-        self.assertTrue(self.mock_session.active.call_count == 2)
+        self.assertTrue(self.mock_session.pause.call_count is 2)
+        self.assertTrue(self.mock_session.play.call_count is 1)
+        self.assertTrue(self.mock_session.active.call_count is 2)
 
     def test_single_unknown_pb_events(self):
         """
@@ -737,7 +737,7 @@ class EventHandlerTest(unittest.TestCase):
         """
 
         # Unknown event type, should be ignored
-        json = {self.mock_config._EVENTS: [{self.mock_config._PB_NOTIF: -1}]}
+        json = {self.mock_config.events: [{self.mock_config.pb_notif: -1}]}
         self.ev_handler.process_json_response(json)
         self.mock_session.play.assert_not_called()
         self.mock_session.pause.assert_not_called()
@@ -752,9 +752,9 @@ class EventHandlerTest(unittest.TestCase):
 
         with patch("requests.get") as get_mock:
             self.mock_requests_get = get_mock
-            self.mock_requests_get.return_value.status_code = self.mock_config._REST_SUCCESS_CODE
-            self.mock_requests_get.return_value.json.return_value =\
-                {self.mock_config._EVENTS: [{self.mock_config._PB_NOTIF: self.mock_config._PB_NOTIF_STOP}]}
+            self.mock_requests_get.return_value.status_code = self.mock_config.rest_success_code
+            self.mock_requests_get.return_value.json.return_value = {
+                self.mock_config.events: [{self.mock_config.pb_notif: self.mock_config.pb_notif_stop}]}
 
             self.ev_handler.listen_for_events()
             self.mock_session.pause.assert_called_once_with(600)
@@ -771,7 +771,7 @@ class EventHandlerTest(unittest.TestCase):
 
         with patch("requests.get") as get_mock:
             self.mock_requests_get = get_mock
-            self.mock_requests_get.return_value.status_code = self.mock_config._REST_SUCCESS_CODE
+            self.mock_requests_get.return_value.status_code = self.mock_config.rest_success_code
             self.mock_requests_get.return_value.json.return_value = 123456789
 
             with self.assertRaises(audio_device_controller.events.EventError) as context:
@@ -791,7 +791,7 @@ class EventHandlerTest(unittest.TestCase):
         import audio_device_controller.events
 
         with patch("requests.get") as mock_get:
-            mock_get.return_value.status_code = self.mock_config._REST_NOT_FOUND_CODE
+            mock_get.return_value.status_code = self.mock_config.rest_not_found_code
             with self.assertRaises(audio_device_controller.events.EventError) as context:
                 self.ev_handler.listen_for_events()
             self.assertTrue("responded with status code" in str(context.exception))
@@ -846,15 +846,15 @@ class ConfigOptionsTest(unittest.TestCase):
             mock_parser.return_value.getint.assert_has_calls(calls)
 
             # Stored values match the provided data.
-            self.assertTrue(self.config_options.REST_URL == "http://localhost:5555/ev")
-            self.assertTrue(self.config_options.EVENTS == "Events")
-            self.assertTrue(self.config_options.PB_NOTIF == "Notification")
-            self.assertTrue(self.config_options.PB_NOTIF_STOP == 0)
-            self.assertTrue(self.config_options.PB_NOTIF_PLAY == 1)
-            self.assertTrue(self.config_options.PB_NOTIF_PAUSE == 2)
-            self.assertTrue(self.config_options.PB_NOTIF_ACTIVE_DEVICE == 3)
-            self.assertTrue(self.config_options.PB_NOTIF_INACTIVE_DEVICE == 4)
-            self.assertTrue(self.config_options.POWER_OFF_DELAY_MINS == 10)
+            self.assertTrue(self.config_options.rest_url == "http://localhost:5555/ev")
+            self.assertTrue(self.config_options.events == "Events")
+            self.assertTrue(self.config_options.pb_notif == "Notification")
+            self.assertTrue(self.config_options.pb_notif_stop == 0)
+            self.assertTrue(self.config_options.pb_notif_play == 1)
+            self.assertTrue(self.config_options.pb_notif_pause == 2)
+            self.assertTrue(self.config_options.pb_notif_active_device == 3)
+            self.assertTrue(self.config_options.pb_notif_inactive_device == 4)
+            self.assertTrue(self.config_options.power_off_delay_mins == 10)
 
     def test_file_not_found(self):
         """

@@ -55,14 +55,14 @@ class EventHandler:
         """
         import requests
 
-        response = requests.get(self._config._REST_URL)
-        if response.status_code is self._config._REST_SUCCESS_CODE:
+        response = requests.get(self._config.rest_url)
+        if response.status_code is self._config.rest_success_code:
             try:
                 self.process_json_response(response.json())
             except EventError as error:
-                raise EventError("Response from " + self._config._REST_URL + error.message)
+                raise EventError("Response from " + self._config.rest_url + error.message)
         else:
-            raise EventError("Error: " + self._config._REST_URL +
+            raise EventError("Error: " + self._config.rest_url +
                              " responded with status code: " + str(response.status_code))
 
     def process_json_response(self, json_data):
@@ -75,9 +75,9 @@ class EventHandler:
         """
 
         try:
-            if self._config._EVENTS in json_data:
-                for event in json_data[self._config._EVENTS]:
-                    if self._config._PB_NOTIF in event.keys():
+            if self._config.events in json_data:
+                for event in json_data[self._config.events]:
+                    if self._config.pb_notif in event.keys():
                         self._process_single_playback_event(event)
             else:
                 raise EventError("Response malformed.")
@@ -94,16 +94,16 @@ class EventHandler:
         """
         import sys
 
-        n_type = event[self._config._PB_NOTIF]
+        n_type = event[self._config.pb_notif]
 
-        if n_type is self._config._PB_NOTIF_ACTIVE_DEVICE:
+        if n_type is self._config.pb_notif_active_device:
             self._session.active(True)
-        elif n_type is self._config._PB_NOTIF_INACTIVE_DEVICE:
+        elif n_type is self._config.pb_notif_inactive_device:
             self._session.active(False)
-        elif n_type is self._config._PB_NOTIF_PLAY:
+        elif n_type is self._config.pb_notif_play:
             self._session.play()
-        elif n_type is self._config._PB_NOTIF_STOP or n_type is self._config._PB_NOTIF_PAUSE:
-            self._session.pause(self._config._POWER_OFF_DELAY_MINS * 60)
+        elif n_type is self._config.pb_notif_stop or n_type is self._config.pb_notif_pause:
+            self._session.pause(self._config.power_off_delay_mins * 60)
         else:
             sys.stdout.write("Type of playback event not recognised.")
 
@@ -114,16 +114,56 @@ class ConfigOptions:
     """
 
     def __init__(self):
-        self.REST_URL                 = ""
-        self.REST_SUCCESS_CODE        = 200  # Standard HTTP success response code
-        self.EVENTS                   = ""
-        self.PB_NOTIF                 = ""
-        self.PB_NOTIF_STOP            = -1
-        self.PB_NOTIF_PLAY            = -1
-        self.PB_NOTIF_PAUSE           = -1
-        self.PB_NOTIF_ACTIVE_DEVICE   = -1
-        self.PB_NOTIF_INACTIVE_DEVICE = -1
-        self.POWER_OFF_DELAY_MINS     = 10
+        self._REST_URL                 = ""
+        self._REST_SUCCESS_CODE        = 200  # Standard HTTP success response code
+        self._EVENTS                   = ""
+        self._PB_NOTIF                 = ""
+        self._PB_NOTIF_STOP            = -1
+        self._PB_NOTIF_PLAY            = -1
+        self._PB_NOTIF_PAUSE           = -1
+        self._PB_NOTIF_ACTIVE_DEVICE   = -1
+        self._PB_NOTIF_INACTIVE_DEVICE = -1
+        self._POWER_OFF_DELAY_MINS     = 10
+
+    @property
+    def rest_url(self):
+        return self._REST_URL
+
+    @property
+    def rest_success_code(self):
+        return self._REST_SUCCESS_CODE
+
+    @property
+    def events(self):
+        return self._EVENTS
+
+    @property
+    def pb_notif(self):
+        return self._PB_NOTIF
+
+    @property
+    def pb_notif_stop(self):
+        return self._PB_NOTIF_STOP
+
+    @property
+    def pb_notif_play(self):
+        return self._PB_NOTIF_PLAY
+
+    @property
+    def pb_notif_pause(self):
+        return self._PB_NOTIF_PAUSE
+
+    @property
+    def pb_notif_active_device(self):
+        return self._PB_NOTIF_ACTIVE_DEVICE
+
+    @property
+    def pb_notif_inactive_device(self):
+        return self._PB_NOTIF_INACTIVE_DEVICE
+
+    @property
+    def power_off_delay_mins(self):
+        return self._POWER_OFF_DELAY_MINS
 
     def read_from_file(self):
         """
@@ -136,15 +176,15 @@ class ConfigOptions:
 
         # Check that the parser could read one file, and then extract the data.
         if "config.ini" in config.read("config.ini"):
-            self.REST_URL                 = config.get("EventServer", "rest_url", fallback="")
-            self.EVENTS                   = config.get("MediaFormat", "events", fallback="")
-            self.PB_NOTIF                 = config.get("MediaFormat", "pb_notif", fallback="")
-            self.PB_NOTIF_STOP            = config.getint("MediaFormat", "pb_notif_stop", fallback=-1)
-            self.PB_NOTIF_PLAY            = config.getint("MediaFormat", "pb_notif_play", fallback=-1)
-            self.PB_NOTIF_PAUSE           = config.getint("MediaFormat", "pb_notif_pause", fallback=-1)
-            self.PB_NOTIF_ACTIVE_DEVICE   = config.getint("MediaFormat", "pb_notif_active_device", fallback=-1)
-            self.PB_NOTIF_INACTIVE_DEVICE = config.getint("MediaFormat", "pb_notif_inactive_device", fallback=-1)
-            self.POWER_OFF_DELAY_MINS     = config.getint("DeviceControl", "power_off_delay_mins", fallback=10)
+            self._REST_URL                 = config.get("EventServer", "rest_url", fallback="")
+            self._EVENTS                   = config.get("MediaFormat", "events", fallback="")
+            self._PB_NOTIF                 = config.get("MediaFormat", "pb_notif", fallback="")
+            self._PB_NOTIF_STOP            = config.getint("MediaFormat", "pb_notif_stop", fallback=-1)
+            self._PB_NOTIF_PLAY            = config.getint("MediaFormat", "pb_notif_play", fallback=-1)
+            self._PB_NOTIF_PAUSE           = config.getint("MediaFormat", "pb_notif_pause", fallback=-1)
+            self._PB_NOTIF_ACTIVE_DEVICE   = config.getint("MediaFormat", "pb_notif_active_device", fallback=-1)
+            self._PB_NOTIF_INACTIVE_DEVICE = config.getint("MediaFormat", "pb_notif_inactive_device", fallback=-1)
+            self._POWER_OFF_DELAY_MINS     = config.getint("DeviceControl", "power_off_delay_mins", fallback=10)
         else:
             raise ValueError("Failed to open config.ini")
 
@@ -156,14 +196,14 @@ class ConfigOptions:
 
         ret = "".join(
             ["Configuration options\n=======================",
-             "\nURL:                 ", self.REST_URL,
-             "\nEvents:              ", self.EVENTS,
-             "\nPB notification:     ", self.PB_NOTIF,
-             "\nPB stop:             ", str(self.PB_NOTIF_STOP),
-             "\nPB play:             ", str(self.PB_NOTIF_PLAY),
-             "\nPB pause:            ", str(self.PB_NOTIF_PAUSE),
-             "\nPB active device:    ", str(self.PB_NOTIF_ACTIVE_DEVICE),
-             "\nPB inactive device:  ", str(self.PB_NOTIF_INACTIVE_DEVICE),
-             "\nPB power off delay:  ", str(self.POWER_OFF_DELAY_MINS)])
+             "\nURL:                 ", self.rest_url,
+             "\nEvents:              ", self.events,
+             "\nPB notification:     ", self.pb_notif,
+             "\nPB stop:             ", str(self.pb_notif_stop),
+             "\nPB play:             ", str(self.pb_notif_play),
+             "\nPB pause:            ", str(self.pb_notif_pause),
+             "\nPB active device:    ", str(self.pb_notif_active_device),
+             "\nPB inactive device:  ", str(self.pb_notif_inactive_device),
+             "\nPB power off delay:  ", str(self.power_off_delay_mins)])
 
         return ret
