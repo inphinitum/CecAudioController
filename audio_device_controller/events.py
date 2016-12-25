@@ -136,29 +136,15 @@ class ConfigOptions:
 
         # Check that the parser could read one file, and then extract the data.
         if config.read("config.ini") == ["config.ini"]:
-            # [EventServer]
-            if config.has_option("EventServer", "rest_url"):
-                self.REST_URL = config.get("EventServer", "rest_url")
-
-            # [MediaFormat]
-            if config.has_option("MediaFormat", "events"):
-                self.EVENTS = config.get("MediaFormat", "events")
-            if config.has_option("MediaFormat", "pb_notif"):
-                self.PB_NOTIF = config.get("MediaFormat", "pb_notif")
-            if config.has_option("MediaFormat", "pb_notif_stop"):
-                self.PB_NOTIF_STOP = config.getint("MediaFormat", "pb_notif_stop")
-            if config.has_option("MediaFormat", "pb_notif_play"):
-                self.PB_NOTIF_PLAY = config.getint("MediaFormat", "pb_notif_play")
-            if config.has_option("MediaFormat", "pb_notif_pause"):
-                self.PB_NOTIF_PAUSE = config.getint("MediaFormat", "pb_notif_pause")
-            if config.has_option("MediaFormat", "pb_notif_active_device"):
-                self.PB_NOTIF_ACTIVE_DEVICE = config.getint("MediaFormat", "pb_notif_active_device")
-            if config.has_option("MediaFormat", "pb_notif_inactive_device"):
-                self.PB_NOTIF_INACTIVE_DEVICE = config.getint("MediaFormat", "pb_notif_inactive_device")
-
-            # [DeviceControl]
-            if config.has_option("DeviceControl", "power_off_delay_mins"):
-                self.POWER_OFF_DELAY_MINS = config.getint("DeviceControl", "power_off_delay_mins")
+            self.REST_URL                 = config.get("EventServer", "rest_url", fallback="")
+            self.EVENTS                   = config.get("MediaFormat", "events", fallback="")
+            self.PB_NOTIF                 = config.get("MediaFormat", "pb_notif", fallback="")
+            self.PB_NOTIF_STOP            = config.getint("MediaFormat", "pb_notif_stop", fallback=-1)
+            self.PB_NOTIF_PLAY            = config.getint("MediaFormat", "pb_notif_play", fallback=-1)
+            self.PB_NOTIF_PAUSE           = config.getint("MediaFormat", "pb_notif_pause", fallback=-1)
+            self.PB_NOTIF_ACTIVE_DEVICE   = config.getint("MediaFormat", "pb_notif_active_device", fallback=-1)
+            self.PB_NOTIF_INACTIVE_DEVICE = config.getint("MediaFormat", "pb_notif_inactive_device", fallback=-1)
+            self.POWER_OFF_DELAY_MINS     = config.getint("DeviceControl", "power_off_delay_mins", fallback=10)
         else:
             raise ValueError("Failed to open config.ini")
 

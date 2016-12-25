@@ -831,20 +831,18 @@ class ConfigOptionsTest(unittest.TestCase):
 
             mock_parser.return_value.read.assert_called_once_with("config.ini")
 
-            # Parser has been asked about the right things have.
-            calls = [call("EventServer", "rest_url"), call("MediaFormat", "events"), call("MediaFormat", "pb_notif"),
-                     call("MediaFormat", "pb_notif_stop"), call("MediaFormat", "pb_notif_play"),
-                     call("MediaFormat", "pb_notif_pause"), call("MediaFormat", "pb_notif_active_device"),
-                     call("MediaFormat", "pb_notif_inactive_device"), call("DeviceControl", "power_off_delay_mins")]
-            mock_parser.return_value.has_option.assert_has_calls(calls)
-
             # Parser has been queried about the right things.
-            calls = [call("MediaFormat", "events"), call("MediaFormat", "pb_notif")]
+            calls = [call("EventServer", "rest_url", fallback=""),
+                     call("MediaFormat", "events", fallback=""),
+                     call("MediaFormat", "pb_notif", fallback="")]
             mock_parser.return_value.get.assert_has_calls(calls)
 
-            calls = [call("MediaFormat", "pb_notif_stop"), call("MediaFormat", "pb_notif_play"),
-                     call("MediaFormat", "pb_notif_pause"), call("MediaFormat", "pb_notif_active_device"),
-                     call("MediaFormat", "pb_notif_inactive_device"), call("DeviceControl", "power_off_delay_mins")]
+            calls = [call("MediaFormat", "pb_notif_stop", fallback=-1),
+                     call("MediaFormat", "pb_notif_play", fallback=-1),
+                     call("MediaFormat", "pb_notif_pause", fallback=-1),
+                     call("MediaFormat", "pb_notif_active_device", fallback=-1),
+                     call("MediaFormat", "pb_notif_inactive_device", fallback=-1),
+                     call("DeviceControl", "power_off_delay_mins", fallback=10)]
             mock_parser.return_value.getint.assert_has_calls(calls)
 
             # Stored values match the provided data.
@@ -857,29 +855,6 @@ class ConfigOptionsTest(unittest.TestCase):
             self.assertTrue(self.config_options.PB_NOTIF_ACTIVE_DEVICE == 3)
             self.assertTrue(self.config_options.PB_NOTIF_INACTIVE_DEVICE == 4)
             self.assertTrue(self.config_options.POWER_OFF_DELAY_MINS == 10)
-
-    def test_read_from_empty_file(self):
-        """
-        Test when reading from an empty file.
-
-        :return: None
-        """
-
-        with patch("configparser.ConfigParser") as mock_parser:
-            mock_parser.return_value.read.return_value = ["config.ini"]
-            mock_parser.return_value.has_option.return_value = False
-
-            self.config_options.read_from_file()
-
-            mock_parser.return_value.read.assert_called_once_with("config.ini")
-
-            calls = [call("EventServer", "rest_url"), call("MediaFormat", "events"), call("MediaFormat", "pb_notif"),
-                     call("MediaFormat", "pb_notif_stop"), call("MediaFormat", "pb_notif_play"),
-                     call("MediaFormat", "pb_notif_pause"), call("MediaFormat", "pb_notif_active_device"),
-                     call("MediaFormat", "pb_notif_inactive_device"), call("DeviceControl", "power_off_delay_mins")]
-            mock_parser.return_value.has_option.assert_has_calls(calls)
-            mock_parser.return_value.get.assert_not_called()
-            mock_parser.return_value.getint.assert_not_called()
 
     def test_file_not_found(self):
         """
