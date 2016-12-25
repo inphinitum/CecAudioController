@@ -24,4 +24,8 @@ setup(
     test_suite="nose.collector",
     requires=required,
     setup_requires=["nose>=1.0"],
+    classifiers=["Development Status :: 3 - Alpha",
+                 "Programming Language :: Python 3.3",
+                 "Programming Language :: Python 3.4",
+                 "Programming Language :: Python 3.5"],
 )

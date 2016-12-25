@@ -96,13 +96,13 @@ class EventHandler:
 
         n_type = event[self._config._PB_NOTIF]
 
-        if n_type == self._config._PB_NOTIF_ACTIVE_DEVICE:
+        if n_type is self._config._PB_NOTIF_ACTIVE_DEVICE:
             self._session.active(True)
-        elif n_type == self._config._PB_NOTIF_INACTIVE_DEVICE:
+        elif n_type is self._config._PB_NOTIF_INACTIVE_DEVICE:
             self._session.active(False)
-        elif n_type == self._config._PB_NOTIF_PLAY:
+        elif n_type is self._config._PB_NOTIF_PLAY:
             self._session.play()
-        elif n_type == self._config._PB_NOTIF_STOP or n_type == self._config._PB_NOTIF_PAUSE:
+        elif n_type is self._config._PB_NOTIF_STOP or n_type is self._config._PB_NOTIF_PAUSE:
             self._session.pause(self._config._POWER_OFF_DELAY_MINS * 60)
         else:
             sys.stdout.write("Type of playback event not recognised.")
@@ -168,14 +168,16 @@ class ConfigOptions:
         :return: str
         """
 
-        ret = "Configuration options\n======================="
-        ret += "\nURL:                 " + self.REST_URL
-        ret += "\nEvents:              " + self.EVENTS
-        ret += "\nPB notification:     " + self.PB_NOTIF
-        ret += "\nPB stop:             " + str(self.PB_NOTIF_STOP)
-        ret += "\nPB play:             " + str(self.PB_NOTIF_PLAY)
-        ret += "\nPB pause:            " + str(self.PB_NOTIF_PAUSE)
-        ret += "\nPB active device:    " + str(self.PB_NOTIF_ACTIVE_DEVICE)
-        ret += "\nPB inactive device:  " + str(self.PB_NOTIF_INACTIVE_DEVICE)
-        ret += "\nPB power off delay:  " + str(self.POWER_OFF_DELAY_MINS)
+        ret = "".join(
+            ["Configuration options\n=======================",
+             "\nURL:                 ", self.REST_URL,
+             "\nEvents:              ", self.EVENTS,
+             "\nPB notification:     ", self.PB_NOTIF,
+             "\nPB stop:             ", str(self.PB_NOTIF_STOP),
+             "\nPB play:             ", str(self.PB_NOTIF_PLAY),
+             "\nPB pause:            ", str(self.PB_NOTIF_PAUSE),
+             "\nPB active device:    ", str(self.PB_NOTIF_ACTIVE_DEVICE),
+             "\nPB inactive device:  ", str(self.PB_NOTIF_INACTIVE_DEVICE),
+             "\nPB power off delay:  ", str(self.POWER_OFF_DELAY_MINS)])
+
         return ret
