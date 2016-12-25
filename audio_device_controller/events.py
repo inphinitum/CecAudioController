@@ -135,7 +135,7 @@ class ConfigOptions:
         config.optionxform = str
 
         # Check that the parser could read one file, and then extract the data.
-        if config.read("config.ini") == ["config.ini"]:
+        if "config.ini" in config.read("config.ini"):
             self.REST_URL                 = config.get("EventServer", "rest_url", fallback="")
             self.EVENTS                   = config.get("MediaFormat", "events", fallback="")
             self.PB_NOTIF                 = config.get("MediaFormat", "pb_notif", fallback="")
