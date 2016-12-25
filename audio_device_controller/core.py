@@ -218,14 +218,11 @@ class AudioDeviceControllerCec(AudioDeviceController):
             try:
                 import subprocess
                 self._cec_process = subprocess.Popen(["cec-client"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                output = self.__cec_command("lad")
 
-                try:
-                    output, error = self._cec_process.communicate(input="lad", timeout=15)
-                    if "logical address 5" not in output:
-                        raise CecError("cec-client does not find audio device.")
+                if "logical address 5" not in output:
+                    raise CecError("cec-client does not find audio device.")
 
-                except subprocess.TimeoutExpired:
-                    raise CecError("cec-client unresponsive, terminated.")
             except OSError:
                 raise CecError("cec-client not found.")
 
@@ -251,15 +248,10 @@ class AudioDeviceControllerCec(AudioDeviceController):
 
         :return: None
         """
-        import subprocess
 
         super().power_on()
-        try:
-            self._cec_process.communicate(input="on 5", timeout=15)
 
-        except subprocess.TimeoutExpired:
-            self._cec_process.terminate()
-            raise CecError("cec-client unresponsive, terminated.")
+        self.__cec_command("on 5")
 
     def standby(self):
         """
@@ -270,12 +262,25 @@ class AudioDeviceControllerCec(AudioDeviceController):
 
         :return: None
         """
-        import subprocess
 
         super().standby()
+
+        self.__cec_command("standby 5")
+
+    def __cec_command(self, command):
+        """
+        Sends the given command to the cec process (Popen).
+
+        Raises:
+            CecError -- in case cec-client is unresponsive.
+        """
+        import subprocess
+
         try:
-            self._cec_process.communicate(input="standby 5", timeout=15)
+            output, error = self._cec_process.communicate(input=command, timeout=15)
 
         except subprocess.TimeoutExpired:
             self._cec_process.terminate()
-            raise CecError("cec-client unresponsive, killed.")
+            raise CecError("cec-client unresponsive, terminated.")
+
+        return output, error
