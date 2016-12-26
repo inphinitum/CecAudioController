@@ -846,15 +846,16 @@ class ConfigOptionsTest(unittest.TestCase):
             mock_parser.return_value.getint.assert_has_calls(calls)
 
             # Stored values match the provided data.
-            self.assertTrue(self.config_options.rest_url == "http://localhost:5555/ev")
-            self.assertTrue(self.config_options.events == "Events")
-            self.assertTrue(self.config_options.pb_notif == "Notification")
-            self.assertTrue(self.config_options.pb_notif_stop == 0)
-            self.assertTrue(self.config_options.pb_notif_play == 1)
-            self.assertTrue(self.config_options.pb_notif_pause == 2)
-            self.assertTrue(self.config_options.pb_notif_active_device == 3)
-            self.assertTrue(self.config_options.pb_notif_inactive_device == 4)
-            self.assertTrue(self.config_options.power_off_delay_mins == 10)
+            self.assertTrue(self.config_options.rest_url is "http://localhost:5555/ev")
+            self.assertTrue(self.config_options.rest_success_code is 200)
+            self.assertTrue(self.config_options.events is "Events")
+            self.assertTrue(self.config_options.pb_notif is "Notification")
+            self.assertTrue(self.config_options.pb_notif_stop is 0)
+            self.assertTrue(self.config_options.pb_notif_play is 1)
+            self.assertTrue(self.config_options.pb_notif_pause is 2)
+            self.assertTrue(self.config_options.pb_notif_active_device is 3)
+            self.assertTrue(self.config_options.pb_notif_inactive_device is 4)
+            self.assertTrue(self.config_options.power_off_delay_mins is 10)
 
     def test_file_not_found(self):
         """

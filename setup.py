@@ -19,6 +19,7 @@ setup(
     author=["Javier Martinez"],
     author_email=["javi@flamingalah.net"],
     license="Apache 2.0",
+    url="https://github.com/inphinitum/audio-device-controller",
     packages=find_packages(),
     scripts=["bin/audio_controller"],
     test_suite="nose.collector",
