@@ -52,6 +52,7 @@ def main():
     try:
         global controller
         controller = audio_device_controller.core.AudioDeviceControllerCec()
+        controller.initialize()
 
         if arguments.power_on:
             controller.power_on()
@@ -62,6 +63,7 @@ def main():
         else:
             global session
             session = audio_device_controller.core.Session(controller)
+            session.initialize()
 
             # Gather configuration options
             config = audio_device_controller.events.ConfigOptions()
@@ -74,7 +76,8 @@ def main():
 
     except (audio_device_controller.core.CecError, audio_device_controller.events.EventError) as e:
         logging.critical(e.message)
-        on_exit()
+
+    on_exit()
 
     logging.info("Exiting")
 
