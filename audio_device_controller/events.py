@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import logging
 
 class EventError(Exception):
     """Exception class for event handling errors.
@@ -56,6 +57,7 @@ class EventHandler:
         import requests
 
         response = requests.get(self._config.rest_url)
+
         if response.status_code is self._config.rest_success_code:
             try:
                 self.process_json_response(response.json())
@@ -73,6 +75,8 @@ class EventHandler:
         :param json_data: Received response in json format.
         :return: None
         """
+
+        logging.info("Event received: " + str(json_data))
 
         try:
             if self._config.events in json_data:
@@ -92,7 +96,6 @@ class EventHandler:
         :param event: type of event to process
         :return: None
         """
-        import sys
 
         n_type = event[self._config.pb_notif]
 
@@ -105,7 +108,7 @@ class EventHandler:
         elif n_type is self._config.pb_notif_stop or n_type is self._config.pb_notif_pause:
             self._session.pause(self._config.power_off_delay_mins * 60)
         else:
-            sys.stdout.write("Type of playback event not recognised.")
+            logging.warning("Type of playback event not recognised.")
 
 
 class ConfigOptions:

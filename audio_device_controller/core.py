@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import logging
+
 
 class Session:
     """
@@ -38,6 +40,7 @@ class Session:
         self._dev_controller.initialize()
 
     def cleanup(self):
+
         if self._pause_timer is not None:
             self._pause_timer.cancel()
             self._pause_timer = None
@@ -166,7 +169,8 @@ class AudioDeviceController:
 
         :return: None
         """
-        pass
+
+        logging.info("Initializing audio device controller...")
 
     def cleanup(self):
         """
@@ -174,7 +178,8 @@ class AudioDeviceController:
 
         :return: None
         """
-        pass
+
+        logging.info("Shutting down audio device controller...")
 
     def power_on(self):
         """
@@ -182,7 +187,8 @@ class AudioDeviceController:
 
         :return: None
         """
-        pass
+
+        logging.info("Sending power on command to audio device...")
 
     def standby(self):
         """
@@ -190,7 +196,8 @@ class AudioDeviceController:
 
         :return: None
         """
-        pass
+
+        logging.info("Sending standby command to audio device...")
 
 
 class AudioDeviceControllerCec(AudioDeviceController):
@@ -252,6 +259,7 @@ class AudioDeviceControllerCec(AudioDeviceController):
         super().power_on()
 
         self.__cec_command("on 5")
+
 
     def standby(self):
         """
