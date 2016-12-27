@@ -123,7 +123,7 @@ class EventHandler:
 
 class ConfigOptions:
     """
-    Handles configuration options, including reading from disk (config.ini)
+    Handles configuration options, including reading from disk (sample_config.ini)
     """
 
     def __init__(self):
@@ -180,18 +180,15 @@ class ConfigOptions:
 
     def read_from_file(self):
         """
-        Reads from config.ini in the same directory the necessary configuration params.
+        Reads from .config.ini in the same directory the necessary configuration params.
         """
         import configparser
 
         config = configparser.ConfigParser()
         config.optionxform = str
 
-        import os
-        print(os.getcwd())
-
         # Check that the parser could read one file, and then extract the data.
-        config_files = ["./config.ini", "~/.audio_device_controller/config.ini", "../data/config.ini"]
+        config_files = ["~/.audio_device_controller_config.ini", ".sample_config.ini", "../.sample_config.ini"]
 
         if len(config.read(config_files)) > 0:
             self._rest_url                 = config.get("EventServer", "rest_url", fallback="")
@@ -204,7 +201,7 @@ class ConfigOptions:
             self._pb_notif_inactive_device = config.getint("MediaFormat", "pb_notif_inactive_device", fallback=-1)
             self._power_off_delay_mins     = config.getint("DeviceControl", "power_off_delay_mins", fallback=10)
         else:
-            raise ValueError("Failed to open config.ini")
+            raise ValueError("Failed to open .audio_device_controller_config.ini")
 
     def __str__(self):  # pragma: no cover
         """

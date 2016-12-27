@@ -229,13 +229,13 @@ class ConfigOptionsTest(unittest.TestCase):
 
     def test_read_from_file(self):
         """
-        Test that all the elements that should be read are read properly from .config.ini
+        Test that all the elements that should be read are read properly from .sample_config.ini
 
         :return: None
         """
 
         with patch("configparser.ConfigParser") as mock_parser:
-            mock_parser.return_value.read.return_value = ["config.ini"]
+            mock_parser.return_value.read.return_value = [".sample_config.ini"]
             mock_parser.return_value.has_option.side_effect = ["EventServer", "MediaFormat", "MediaFormat",
                                                                "MediaFormat", "MediaFormat", "MediaFormat",
                                                                "MediaFormat", "MediaFormat", "DeviceControl"]
@@ -243,9 +243,8 @@ class ConfigOptionsTest(unittest.TestCase):
             mock_parser.return_value.getint.side_effect = [0, 1, 2, 3, 4, 10]
 
             self.config_options.read_from_file()
-
-            file_list = ["./config.ini", "~/.audio_device_controller/config.ini", "../data/config.ini"]
-            mock_parser.return_value.read.assert_called_once_with(file_list)
+            mock_parser.return_value.read.assert_called_once_with(["~/.audio_device_controller_config.ini",
+                                                                   ".sample_config.ini", "../.sample_config.ini"])
 
             # Parser has been queried about the right things.
             calls = [call("EventServer", "rest_url", fallback=""),
@@ -286,4 +285,4 @@ class ConfigOptionsTest(unittest.TestCase):
 
             with self.assertRaises(ValueError) as context:
                 self.config_options.read_from_file()
-            self.assertTrue("Failed to open config.ini" in str(context.exception))
+            self.assertTrue("Failed to open" in str(context.exception))
