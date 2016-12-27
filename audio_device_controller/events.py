@@ -187,6 +187,9 @@ class ConfigOptions:
         config = configparser.ConfigParser()
         config.optionxform = str
 
+        import os
+        print(os.getcwd())
+
         # Check that the parser could read one file, and then extract the data.
         config_files = ["./config.ini", "~/.audio_device_controller/config.ini", "../data/config.ini"]
 
