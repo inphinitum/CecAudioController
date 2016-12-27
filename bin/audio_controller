@@ -70,9 +70,9 @@ def main():
             config.read_from_file()
 
             logging.info("Initialization OK, listening for events on " + config.rest_url)
-            ev_handler = audio_device_controller.events.EventHandler(session, config)
-            while True:
-                ev_handler.listen_for_events()
+            with audio_device_controller.events.EventHandler(session, config) as ev_handler:
+                while True:
+                    ev_handler.listen_for_events()
 
     except (audio_device_controller.core.CecError, audio_device_controller.events.EventError) as e:
         logging.critical(e.message)

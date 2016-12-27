@@ -50,18 +50,18 @@ class SystemTestCore(unittest.TestCase):
 
             with patch("requests.get") as get_mock:
                 config = ConfigOptions()
-                event_handler = EventHandler(Session(AudioDeviceControllerCec()), config)
 
-                get_mock.return_value.status_code = config.rest_success_code
-                get_mock.return_value.json.return_value = {
-                    config.events: [{config.pb_notif: config.pb_notif_active_device},
-                                    {config.pb_notif: config.pb_notif_play},
-                                    {config.pb_notif: config.pb_notif_inactive_device}]}
+                with EventHandler(Session(AudioDeviceControllerCec()), config) as event_handler:
+                    get_mock.return_value.status_code = config.rest_success_code
+                    get_mock.return_value.json.return_value = {
+                        config.events: [{config.pb_notif: config.pb_notif_active_device},
+                                        {config.pb_notif: config.pb_notif_play},
+                                        {config.pb_notif: config.pb_notif_inactive_device}]}
 
-                event_handler.listen_for_events()
+                    event_handler.listen_for_events()
 
-                calls = [call(input="lad", timeout=15),
-                         call(input="on 5", timeout=15),
-                         call(input="standby 5", timeout=15)]
+                    calls = [call(input="lad", timeout=15),
+                             call(input="on 5", timeout=15),
+                             call(input="standby 5", timeout=15)]
 
-                mock_popen.communicate.assert_has_calls(calls)
+                    mock_popen.communicate.assert_has_calls(calls)
