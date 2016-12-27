@@ -16,6 +16,7 @@ limitations under the License.
 
 import logging
 
+
 class EventError(Exception):
     """Exception class for event handling errors.
 
@@ -42,7 +43,9 @@ class EventHandler:
         """
 
         self._session = session
+        self._session.initialize()
         self._config = config
+        self._config.read_from_file()
 
     def listen_for_events(self):
         """
@@ -117,56 +120,56 @@ class ConfigOptions:
     """
 
     def __init__(self):
-        self._REST_URL                 = ""
-        self._REST_SUCCESS_CODE        = 200  # Standard HTTP success response code
-        self._EVENTS                   = ""
-        self._PB_NOTIF                 = ""
-        self._PB_NOTIF_STOP            = -1
-        self._PB_NOTIF_PLAY            = -1
-        self._PB_NOTIF_PAUSE           = -1
-        self._PB_NOTIF_ACTIVE_DEVICE   = -1
-        self._PB_NOTIF_INACTIVE_DEVICE = -1
-        self._POWER_OFF_DELAY_MINS     = 10
+        self._rest_url                 = ""
+        self._rest_success_code        = 200  # Standard HTTP success response code
+        self._events                   = ""
+        self._pb_notif                 = ""
+        self._pb_notif_stop            = -1
+        self._pb_notif_play            = -1
+        self._pb_notif_pause           = -1
+        self._pb_notif_active_device   = -1
+        self._pb_notif_inactive_device = -1
+        self._power_off_delay_mins     = 10
 
     @property
     def rest_url(self):
-        return self._REST_URL
+        return self._rest_url
 
     @property
     def rest_success_code(self):
-        return self._REST_SUCCESS_CODE
+        return self._rest_success_code
 
     @property
     def events(self):
-        return self._EVENTS
+        return self._events
 
     @property
     def pb_notif(self):
-        return self._PB_NOTIF
+        return self._pb_notif
 
     @property
     def pb_notif_stop(self):
-        return self._PB_NOTIF_STOP
+        return self._pb_notif_stop
 
     @property
     def pb_notif_play(self):
-        return self._PB_NOTIF_PLAY
+        return self._pb_notif_play
 
     @property
     def pb_notif_pause(self):
-        return self._PB_NOTIF_PAUSE
+        return self._pb_notif_pause
 
     @property
     def pb_notif_active_device(self):
-        return self._PB_NOTIF_ACTIVE_DEVICE
+        return self._pb_notif_active_device
 
     @property
     def pb_notif_inactive_device(self):
-        return self._PB_NOTIF_INACTIVE_DEVICE
+        return self._pb_notif_inactive_device
 
     @property
     def power_off_delay_mins(self):
-        return self._POWER_OFF_DELAY_MINS
+        return self._power_off_delay_mins
 
     def read_from_file(self):
         """
@@ -178,16 +181,18 @@ class ConfigOptions:
         config.optionxform = str
 
         # Check that the parser could read one file, and then extract the data.
-        if "config.ini" in config.read("config.ini"):
-            self._REST_URL                 = config.get("EventServer", "rest_url", fallback="")
-            self._EVENTS                   = config.get("MediaFormat", "events", fallback="")
-            self._PB_NOTIF                 = config.get("MediaFormat", "pb_notif", fallback="")
-            self._PB_NOTIF_STOP            = config.getint("MediaFormat", "pb_notif_stop", fallback=-1)
-            self._PB_NOTIF_PLAY            = config.getint("MediaFormat", "pb_notif_play", fallback=-1)
-            self._PB_NOTIF_PAUSE           = config.getint("MediaFormat", "pb_notif_pause", fallback=-1)
-            self._PB_NOTIF_ACTIVE_DEVICE   = config.getint("MediaFormat", "pb_notif_active_device", fallback=-1)
-            self._PB_NOTIF_INACTIVE_DEVICE = config.getint("MediaFormat", "pb_notif_inactive_device", fallback=-1)
-            self._POWER_OFF_DELAY_MINS     = config.getint("DeviceControl", "power_off_delay_mins", fallback=10)
+        config_files = ["./config.ini", "~/.audio_device_controller/config.ini", "../data/config.ini"]
+
+        if len(config.read(config_files)) > 0:
+            self._rest_url                 = config.get("EventServer", "rest_url", fallback="")
+            self._events                   = config.get("MediaFormat", "events", fallback="")
+            self._pb_notif                 = config.get("MediaFormat", "pb_notif", fallback="")
+            self._pb_notif_stop            = config.getint("MediaFormat", "pb_notif_stop", fallback=-1)
+            self._pb_notif_play            = config.getint("MediaFormat", "pb_notif_play", fallback=-1)
+            self._pb_notif_pause           = config.getint("MediaFormat", "pb_notif_pause", fallback=-1)
+            self._pb_notif_active_device   = config.getint("MediaFormat", "pb_notif_active_device", fallback=-1)
+            self._pb_notif_inactive_device = config.getint("MediaFormat", "pb_notif_inactive_device", fallback=-1)
+            self._power_off_delay_mins     = config.getint("DeviceControl", "power_off_delay_mins", fallback=10)
         else:
             raise ValueError("Failed to open config.ini")
 
