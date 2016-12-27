@@ -49,6 +49,8 @@ class EventHandler:
         self._session.initialize()
         self._config.read_from_file()
 
+        return self
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._session.cleanup()
 
