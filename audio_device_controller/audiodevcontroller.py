@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import argparse
 import logging
 import signal
@@ -12,6 +9,28 @@ controller = None
 session = None
 
 
+parser = argparse.ArgumentParser(description="Control an audio device via CEC.")
+
+group = parser.add_mutually_exclusive_group(required=True)
+group.add_argument("-power_on", action="store_const", const=True,
+                   help="Power on the audio device", default=False)
+group.add_argument("-standby", action="store_const", const=True,
+                   help="Set the audio device to standby", default=False)
+group.add_argument("-event_listener", action="store_const", const=True,
+                   help="Listen for events to control the audio device", default=False)
+
+parser.add_argument("-comm_type", type=str, choices=["cec"],
+                    help="Type of communication with the audio device (HDMI CEC, IR...)",
+                    default="cec")
+parser.add_argument("--debug", dest="debug", action="store_const", const=True,
+                    help="Enable debugging", default=False)
+
+
+def config_logging(arguments):
+    if arguments.debug:
+        logging.basicConfig(level="DEBUG")
+
+
 def on_exit():
     if controller is not None:
         controller.cleanup()
@@ -20,19 +39,14 @@ def on_exit():
         session.cleanup()
 
 
-def main():
+def entry():
     # Capture terminate signals for proper cleanup.
     signal.signal(signal.SIGTERM, on_exit)
 
-    logging.basicConfig(filename='myapp.log', level=logging.INFO)
-    logging.info("Started")
-
-    parser = argparse.ArgumentParser(description="Control an audio device via CEC.")
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("-power_on", action="store_false")
-    group.add_argument("-standby", action="store_false")
-    group.add_argument("-event_listener", action="store_false")
     arguments = parser.parse_args()
+    config_logging(arguments)
+
+    logging.info("Started")
 
     try:
         global controller
@@ -65,6 +79,3 @@ def main():
     on_exit()
 
     logging.info("Exiting")
-
-if __name__ == "__main__":
-    main()
