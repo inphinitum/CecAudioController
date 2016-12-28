@@ -27,9 +27,9 @@ with DeviceControllerCec() as controller:
     controller.standby()
 ```
 ```python
-    with EventHandler(session, config) as ev_handler:
-        while True:
-            ev_handler.listen_for_events()
+with EventHandler(session, config) as ev_handler:
+    while True:
+        ev_handler.listen_for_events()
 ```
 
 ## Configuration file
