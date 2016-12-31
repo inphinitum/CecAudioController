@@ -21,7 +21,9 @@ setup(
     license="Apache 2.0",
     url="https://github.com/inphinitum/audio-device-controller",
     packages=find_packages(),
-    scripts="bin/audio_controller.py",
+    entry_points={
+        "console_scripts": ["audio-dev-controller=audio_device_controller.audiodevcontroller.entry"],
+    },
     test_suite="nose.collector",
     requires=required,
     setup_requires=["nose>=1.0"],
