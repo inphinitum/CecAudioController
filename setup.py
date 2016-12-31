@@ -15,7 +15,7 @@ with open("requirements.txt") as reqs_file:
 setup(
     name=NAME,
     version=VERSION,
-    description="Audio device controller via HDMI CEC",
+    description="Audio device controller via different protocols such as HDMI CEC",
     author="Javier Martinez",
     author_email="javi@flamingalah.net",
     license="GPLv2",
