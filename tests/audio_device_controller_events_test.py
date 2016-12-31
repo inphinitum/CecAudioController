@@ -69,9 +69,9 @@ class EventHandlerTest(unittest.TestCase):
         with self.assertRaises(audio_device_controller.events.EventError) as context:
             self.ev_handler.process_json_response(json)
         self.assertTrue("Response malformed." in str(context.exception))
-        self.mock_session.play.assert_not_called()
-        self.mock_session.pause.assert_not_called()
-        self.mock_session.active.assert_not_called()
+        self.assertTrue(self.mock_session.play.call_count is 0)
+        self.assertTrue(self.mock_session.pause.call_count is 0)
+        self.assertTrue(self.mock_session.active.call_count is 0)
 
     def test_not_recognised_events(self):
         """
@@ -84,9 +84,9 @@ class EventHandlerTest(unittest.TestCase):
         json = {"Events": [{"Notif": 0}]}
 
         self.ev_handler.process_json_response(json)
-        self.mock_session.play.assert_not_called()
-        self.mock_session.pause.assert_not_called()
-        self.mock_session.active.assert_not_called()
+        self.assertTrue(self.mock_session.play.call_count is 0)
+        self.assertTrue(self.mock_session.pause.call_count is 0)
+        self.assertTrue(self.mock_session.active.call_count is 0)
 
     def test_single_known_pb_events(self):
         """
@@ -154,9 +154,9 @@ class EventHandlerTest(unittest.TestCase):
         # Unknown event type, should be ignored
         json = {self.mock_config.events: [{self.mock_config.pb_notif: -1}]}
         self.ev_handler.process_json_response(json)
-        self.mock_session.play.assert_not_called()
-        self.mock_session.pause.assert_not_called()
-        self.mock_session.active.assert_not_called()
+        self.assertTrue(self.mock_session.play.call_count is 0)
+        self.assertTrue(self.mock_session.pause.call_count is 0)
+        self.assertTrue(self.mock_session.active.call_count is 0)
 
     def test_listen_for_events_200(self):
         """
@@ -173,8 +173,8 @@ class EventHandlerTest(unittest.TestCase):
 
             self.ev_handler.listen_for_events(-1)
             self.mock_session.pause.assert_called_once_with(600)
-            self.mock_session.play.assert_not_called()
-            self.mock_session.active.assert_not_called()
+            self.assertTrue(self.mock_session.play.call_count is 0)
+            self.assertTrue(self.mock_session.active.call_count is 0)
 
     def test_listen_for_events_200_malformed(self):
         """
@@ -192,9 +192,9 @@ class EventHandlerTest(unittest.TestCase):
             with self.assertRaises(audio_device_controller.events.EventError) as context:
                 self.ev_handler.listen_for_events(-1)
 
-            self.mock_session.pause.assert_not_called()
-            self.mock_session.play.assert_not_called()
-            self.mock_session.active.assert_not_called()
+                self.assertTrue(self.mock_session.pause.call_count is 0)
+                self.assertTrue(self.mock_session.play.call_count is 0)
+                self.assertTrue(self.mock_session.active.call_count is 0)
         self.assertTrue("Response from " in str(context.exception))
 
     def test_listen_for_events_400(self):

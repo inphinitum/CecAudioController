@@ -338,8 +338,8 @@ class SessionHandlerTest(unittest.TestCase):
                 mock_timer.reset_mock()
 
                 session.pause(10)
-                mock_timer.cancel.assert_not_called()
-                mock_timer.start.assert_not_called()
+                self.assertTrue(mock_timer.cancel.call_count is 0)
+                self.assertTrue(mock_timer.start.call_count is 0)
                 mock_dev_ctrl.power_on.not_called()
                 mock_dev_ctrl.standby.not_called()
 
@@ -544,8 +544,7 @@ class DeviceControllerInitCleanupTest(unittest.TestCase):
         controller = AudioDeviceControllerCec()
         controller.cleanup()
 
-    @staticmethod
-    def test_initialize_twice():
+    def test_initialize_twice(self):
         """
         Test that initialization of an already-initialized controller doesn't do anything.
 
@@ -567,5 +566,5 @@ class DeviceControllerInitCleanupTest(unittest.TestCase):
 
                 # Second (not needed) initialization.
                 controller.initialize()
-                mock_popen.assert_not_called()
-                mock_popen.communicate.assert_not_called()
+                self.assertTrue(mock_popen.call_count is 0)
+                self.assertTrue(mock_popen.communicate.call_count is 0)
