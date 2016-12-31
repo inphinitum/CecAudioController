@@ -61,7 +61,6 @@ class SessionHandlerTest(unittest.TestCase):
             with audio_device_controller.core.Session(mock_dev_ctrl):
                 mock_dev_ctrl.initialize.assert_called_once_with()
 
-            mock_dev_ctrl.standby.assert_called_once_with()
             mock_dev_ctrl.cleanup.assert_called_once_with()
             mock_dev_ctrl.reset_mock()
 
@@ -70,7 +69,7 @@ class SessionHandlerTest(unittest.TestCase):
                 session.play()
                 session.pause(10)
 
-            mock_dev_ctrl.standby.assert_called_once_with()
+            mock_dev_ctrl.standby.assert_not_called()
             mock_dev_ctrl.cleanup.assert_called_once_with()
             mock_timer.cancel.assert_called_once_with()
             self.assertTrue(self.match_internal_state(session, "Inactive"))
@@ -214,7 +213,7 @@ class SessionHandlerTest(unittest.TestCase):
 
         with audio_device_controller.core.Session(mock_dev_ctrl) as session:
             session.active(True)
-            session._callback_pause_timeout()
+            session._send_standby()
             mock_dev_ctrl.reset_mock()
 
             session.play()
@@ -285,7 +284,7 @@ class SessionHandlerTest(unittest.TestCase):
                 session.active(True)
                 session.pause(10)
 
-                mock_timer.start.called_once_with_args(10, session._callback_pause_timeout)
+                mock_timer.start.called_once_with_args(10, session._send_standby)
                 mock_dev_ctrl.power_on.not_called()
                 mock_dev_ctrl.standby.not_called()
 
@@ -309,12 +308,12 @@ class SessionHandlerTest(unittest.TestCase):
                 session.active(True)
                 session.pause(10)
 
-                mock_timer.start.called_once_with_args(10, session._callback_pause_timeout)
+                mock_timer.start.called_once_with_args(10, session._send_standby())
                 mock_dev_ctrl.power_on.not_called()
                 mock_dev_ctrl.standby.not_called()
 
                 # Timer goes off
-                session._callback_pause_timeout()
+                session._send_standby()
                 mock_dev_ctrl.standby.assert_called_once_with()
 
                 self.assertTrue(self.match_internal_state(session, "LongPause"))

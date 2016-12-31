@@ -171,7 +171,7 @@ class EventHandlerTest(unittest.TestCase):
             self.mock_requests_get.return_value.json.return_value = {
                 self.mock_config.events: [{self.mock_config.pb_notif: self.mock_config.pb_notif_stop}]}
 
-            self.ev_handler.listen_for_events()
+            self.ev_handler.listen_for_events(-1)
             self.mock_session.pause.assert_called_once_with(600)
             self.mock_session.play.assert_not_called()
             self.mock_session.active.assert_not_called()
@@ -190,7 +190,7 @@ class EventHandlerTest(unittest.TestCase):
             self.mock_requests_get.return_value.json.return_value = 123456789
 
             with self.assertRaises(audio_device_controller.events.EventError) as context:
-                self.ev_handler.listen_for_events()
+                self.ev_handler.listen_for_events(-1)
 
             self.mock_session.pause.assert_not_called()
             self.mock_session.play.assert_not_called()
@@ -208,7 +208,7 @@ class EventHandlerTest(unittest.TestCase):
         with patch("requests.get") as mock_get:
             mock_get.return_value.status_code = self.mock_config.rest_not_found_code
             with self.assertRaises(audio_device_controller.events.EventError) as context:
-                self.ev_handler.listen_for_events()
+                self.ev_handler.listen_for_events(-1)
             self.assertTrue("responded with status code" in str(context.exception))
 
 

@@ -1,12 +1,5 @@
 import argparse
 import logging
-import signal
-
-import audio_device_controller.core
-import audio_device_controller.events
-
-controller = None
-session = None
 
 
 parser = argparse.ArgumentParser(description="Control an audio device via CEC.")
@@ -19,6 +12,8 @@ group.add_argument("-standby", action="store_const", const=True,
 group.add_argument("-event_listener", action="store_const", const=True,
                    help="Listen for events to control the audio device", default=False)
 
+parser.add_argument("-event_timeout", type=int, dest="event_timeout",
+                    help="Timeout when listening for events in seconds", default=-1)
 parser.add_argument("-comm_type", type=str, choices=["cec"],
                     help="Type of communication with the audio device (HDMI CEC, IR...)",
                     default="cec")
@@ -31,51 +26,36 @@ def config_logging(arguments):
         logging.basicConfig(level="DEBUG")
 
 
-def on_exit():
-    if controller is not None:
-        controller.cleanup()
-
-    if session is not None:
-        session.cleanup()
-
-
 def entry():
-    # Capture terminate signals for proper cleanup.
-    signal.signal(signal.SIGTERM, on_exit)
+    # TODO: Capture terminate signals for proper cleanup.
+    # signal.signal(signal.SIGTERM, €€€)
 
     arguments = parser.parse_args()
     config_logging(arguments)
 
     logging.info("Started")
 
-    try:
-        global controller
-        controller = audio_device_controller.core.AudioDeviceControllerCec()
-        controller.initialize()
+    from .core import Session, AudioDeviceControllerCec, CecError
+    from .events import EventHandler, EventError, ConfigOptions
 
+    try:
         if arguments.power_on:
-            controller.power_on()
+            with AudioDeviceControllerCec() as controller:
+                controller.power_on()
 
         elif arguments.standby:
-            controller.standby()
+            with AudioDeviceControllerCec() as controller:
+                controller.standby()
 
-        else:
-            global session
-            session = audio_device_controller.core.Session(controller)
-            session.initialize()
+        elif arguments.event_listener:
+            config = ConfigOptions()
+            with EventHandler(Session(AudioDeviceControllerCec()), config) as event_handler:
+                logging.info("Initialization OK, listening for events on " + config.rest_url)
 
-            # Gather configuration options
-            config = audio_device_controller.events.ConfigOptions()
-            config.read_from_file()
-
-            logging.info("Initialization OK, listening for events on " + config.rest_url)
-            with audio_device_controller.events.EventHandler(session, config) as ev_handler:
                 while True:
-                    ev_handler.listen_for_events()
+                    event_handler.listen_for_events(arguments.event_timeout)
 
-    except (audio_device_controller.core.CecError, audio_device_controller.events.EventError) as e:
+    except (CecError, EventError) as e:
         logging.critical(e.message)
-
-    on_exit()
 
     logging.info("Exiting")

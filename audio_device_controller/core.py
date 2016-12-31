@@ -29,7 +29,6 @@ class Session:
             self._pause_timer.cancel()
             self._pause_timer = None
 
-        self._dev_controller.standby()
         self._dev_controller.cleanup()
         self._dev_on = False
 
@@ -49,13 +48,7 @@ class Session:
             self._dev_on = True
 
         elif self._active is True and new_active is False:
-            # Cancel previous _pause_timer first
-            if self._pause_timer is not None:
-                self._pause_timer.cancel()
-                self._pause_timer = None
-
-            self._dev_controller.standby()
-            self._dev_on = False
+            self._send_standby()
 
         self._active = new_active
 
@@ -90,10 +83,10 @@ class Session:
         if self._active:
             from threading import Timer
             if self._pause_timer is None:
-                self._pause_timer = Timer(seconds, self._callback_pause_timeout)
+                self._pause_timer = Timer(seconds, self._send_standby)
                 self._pause_timer.start()
 
-    def _callback_pause_timeout(self):
+    def _send_standby(self):
         """
         Callback for the timer started on pause().
 
@@ -103,7 +96,10 @@ class Session:
         if self._active and self._dev_on:
             self._dev_controller.standby()
             self._dev_on = False
-        self._pause_timer = None
+
+        if self._pause_timer:
+            self._pause_timer.cancel()
+            self._pause_timer = None
 
 
 class CecError(Exception):
@@ -243,7 +239,6 @@ class AudioDeviceControllerCec(AudioDeviceController):
         super().power_on()
 
         self.__cec_command("on 5")
-
 
     def standby(self):
         """

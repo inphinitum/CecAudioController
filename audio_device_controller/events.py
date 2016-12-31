@@ -38,7 +38,7 @@ class EventHandler:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._session.cleanup()
 
-    def listen_for_events(self):
+    def listen_for_events(self, event_timeout):
         """
         Listens on the given URL for events and dispatches the type of event
         to the right function for further processing.
@@ -46,12 +46,20 @@ class EventHandler:
         Processes one response at a time. If you want to listen indefinitely you
         must loop outside.
 
+        :argument event_timeout: Number of seconds for timing when listening. -1 for no timeout.
         :return: None
         """
         import requests
 
-        response = requests.get(self._config.rest_url)
+        try:
+            if event_timeout is -1:
+                response = requests.get(self._config.rest_url)
+            else:
+                response = requests.get(self._config.rest_url, timeout=event_timeout)
+        except requests.exceptions.Timeout as e:
+            raise EventError(e.message)
 
+        # Evaluate successful response (code=200, json, well formed).
         if response.status_code is self._config.rest_success_code:
             try:
                 self.process_json_response(response.json())
