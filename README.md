@@ -12,8 +12,7 @@ Controller of audio devices via different options. Provided today:
 Can listen to events via a REST API, or be called with specific commands.
 
 ## Dependencies
-This project depends on [libcec](https://github.com/Pulse-Eight/libcec). Due to license incompatibilities
-it can't be distributed together with this project.
+This project depends on [libcec](https://github.com/Pulse-Eight/libcec).
 
 ## Examples
 
