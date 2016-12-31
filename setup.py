@@ -23,7 +23,7 @@ setup(
     packages=find_packages(),
     entry_points={
         "console_scripts": [
-            "audio-dev-controller = audio_device_controller.audiodevcontroller.entry",
+            "audio-dev-controller = audio_device_controller.audiodevcontroller:entry",
         ],
     },
     test_suite="nose.collector",
