@@ -18,7 +18,7 @@ setup(
     description="Audio device controller via HDMI CEC",
     author="Javier Martinez",
     author_email="javi@flamingalah.net",
-    license="Apache 2.0",
+    license="GPLv2",
     url="https://github.com/inphinitum/audio-device-controller",
     packages=find_packages(),
     entry_points={
