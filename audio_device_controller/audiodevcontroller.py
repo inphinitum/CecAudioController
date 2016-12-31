@@ -47,7 +47,7 @@ def entry():
             with AudioDeviceControllerCec() as controller:
                 controller.standby()
 
-        elif arguments.event_listener:
+        else:                           # arguments.event_listener
             config = ConfigOptions()
             with EventHandler(Session(AudioDeviceControllerCec()), config) as event_handler:
                 logging.info("Initialization OK, listening for events on " + config.rest_url)
