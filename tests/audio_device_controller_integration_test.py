@@ -10,11 +10,22 @@ class SystemTestCore(unittest.TestCase):
     """
 
     @staticmethod
+    def assert_check_output(mock_subp, command):
+        """
+        Auxiliary method.
+        :param mock_subp: Mock object for subprocess
+        :param command: Input bytes literal to be sent to check_output
+        :return: None
+        """
+
+        mock_subp.assert_called_once_with(
+            ["cec-client", "-s", "-d", "1"], input=command, timeout=30)
+
+    @staticmethod
     def test_play():
 
-        with patch("subprocess.Popen", spec=True) as mock_popen:
-            mock_popen.return_value = mock_popen
-            mock_popen.communicate.return_value = ("logical address 5", "")
+        with patch("subprocess.check_output", spec=True) as mock_subp:
+            mock_subp.return_value = b"logical address 5"
 
             # Arguments for the entrypoint
             from audio_device_controller import audiodevcontroller
@@ -22,19 +33,14 @@ class SystemTestCore(unittest.TestCase):
             sys.argv[1:] = ["-power_on", "--debug"]
             audiodevcontroller.entry()
 
-            import subprocess
-
-            mock_popen.assert_called_once_with(["cec-client"],
-                                               stdin=subprocess.PIPE,
-                                               stdout=subprocess.PIPE)
-            calls = [call(input='lad', timeout=15), call(input='on 5', timeout=15)]
-            mock_popen.communicate.assert_has_calls(calls)
+            calls = [call(["cec-client", "-s", "-d", "1"], input=b"lad", timeout=30),
+                     call(["cec-client", "-s", "-d", "1"], input=b"on 5", timeout=30)]
+            mock_subp.assert_has_calls(calls)
 
     @staticmethod
     def test_standby():
-        with patch("subprocess.Popen", spec=True) as mock_popen:
-            mock_popen.return_value = mock_popen
-            mock_popen.communicate.return_value = ("logical address 5", "")
+        with patch("subprocess.check_output", spec=True) as mock_subp:
+            mock_subp.return_value = b"logical address 5"
 
             # Arguments for the entrypoint
             from audio_device_controller import audiodevcontroller
@@ -42,22 +48,17 @@ class SystemTestCore(unittest.TestCase):
             sys.argv[1:] = ["-standby", "--debug"]
             audiodevcontroller.entry()
 
-            import subprocess
-
-            mock_popen.assert_called_once_with(["cec-client"],
-                                               stdin=subprocess.PIPE,
-                                               stdout=subprocess.PIPE)
-            calls = [call(input='lad', timeout=15), call(input='standby 5', timeout=15)]
-            mock_popen.communicate.assert_has_calls(calls)
+            calls = [call(["cec-client", "-s", "-d", "1"], input=b"lad", timeout=30),
+                     call(["cec-client", "-s", "-d", "1"], input=b"standby 5", timeout=30)]
+            mock_subp.assert_has_calls(calls)
 
     @staticmethod
     def test_several_events():
 
         from audio_device_controller.events import ConfigOptions
 
-        with patch("subprocess.Popen", spec=True) as mock_popen:
-            mock_popen.return_value = mock_popen
-            mock_popen.communicate.return_value = ("logical address 5", "")
+        with patch("subprocess.check_output", spec=True) as mock_subp:
+            mock_subp.return_value = b"logical address 5"
 
             with patch("requests.get") as get_mock:
                 config = ConfigOptions()
@@ -77,7 +78,7 @@ class SystemTestCore(unittest.TestCase):
                 sys.argv[1:] = ["-event_listener", "-event_timeout=1"]
                 audiodevcontroller.entry()
 
-                calls = [call(input="lad", timeout=15),
-                         call(input="on 5", timeout=15),
-                         call(input="standby 5", timeout=15)]
-                mock_popen.communicate.assert_has_calls(calls)
+                calls = [call(["cec-client", "-s", "-d", "1"], input=b"lad", timeout=30),
+                         call(["cec-client", "-s", "-d", "1"], input=b"on 5", timeout=30),
+                         call(["cec-client", "-s", "-d", "1"], input=b"standby 5", timeout=30)]
+                mock_subp.assert_has_calls(calls)

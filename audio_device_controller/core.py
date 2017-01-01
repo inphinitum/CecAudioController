@@ -185,13 +185,6 @@ class AudioDeviceControllerCec(AudioDeviceController):
     Controller of devices that are cec-compatible.
     """
 
-    def __init__(self):
-        super().__init__()
-
-        self._AUDIO_LOGICAL_ADDRESS = 5
-        self._cec_process           = None
-        self._cec_lib               = None
-
     def initialize(self):
         """
         Makes sure everything is initialized to control the audio device via CEC.
@@ -201,30 +194,15 @@ class AudioDeviceControllerCec(AudioDeviceController):
         """
         super().initialize()
 
-        if self._cec_process is None:
-            try:
-                import subprocess
-                self._cec_process = subprocess.Popen(["cec-client"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-                output = self.__cec_command("lad")
+        try:
+            import subprocess
+            output = self.__cec_command(b"lad").decode()
 
-                if "logical address 5" not in output:
-                    raise CecError("cec-client does not find audio device.")
+            if "logical address 5" not in output:
+                raise CecError("cec-client does not find audio device.")
 
-            except OSError:
-                raise CecError("cec-client not found.")
-
-    def cleanup(self):
-        """
-        Clean up all spawned threads.
-
-        :return: None
-        """
-        super().cleanup()
-
-        # Stop the thread for the cec-tool
-        if self._cec_process is not None and callable(getattr(self._cec_process, "terminate")):
-            self._cec_process.terminate()
-            self._cec_process = None
+        except FileNotFoundError:
+            raise CecError("cec-client not found.")
 
     def power_on(self):
         """
@@ -237,8 +215,7 @@ class AudioDeviceControllerCec(AudioDeviceController):
         """
 
         super().power_on()
-
-        self.__cec_command("on 5")
+        self.__cec_command(b"on 5")
 
     def standby(self):
         """
@@ -251,10 +228,10 @@ class AudioDeviceControllerCec(AudioDeviceController):
         """
 
         super().standby()
+        self.__cec_command(b"standby 5")
 
-        self.__cec_command("standby 5")
-
-    def __cec_command(self, command):
+    @staticmethod
+    def __cec_command(command):
         """
         Sends the given command to the cec process (Popen).
 
@@ -264,10 +241,9 @@ class AudioDeviceControllerCec(AudioDeviceController):
         import subprocess
 
         try:
-            output, error = self._cec_process.communicate(input=command, timeout=15)
+            return subprocess.check_output(["cec-client", "-s", "-d", "1"], input=command, timeout=30)
 
+        except OSError:
+            raise CecError("cec-client not found.")
         except subprocess.TimeoutExpired:
-            self._cec_process.terminate()
-            raise CecError("cec-client unresponsive, terminated.")
-
-        return output, error
+            raise CecError("cec-client unresponsive.")
