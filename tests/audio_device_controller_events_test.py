@@ -197,6 +197,28 @@ class EventHandlerTest(unittest.TestCase):
                 self.assertTrue(self.mock_session.active.call_count is 0)
         self.assertTrue("Response from " in str(context.exception))
 
+    def test_listen_for_events_timeout(self):
+        """
+        Test behaviour of listen_for_events on request timeout.
+
+        :return:
+        """
+
+        import audio_device_controller.events
+
+        with patch("requests.get") as get_mock:
+
+            from requests.exceptions import Timeout
+            self.mock_requests_get = get_mock
+            self.mock_requests_get.side_effect = Timeout()
+
+            with self.assertRaises(audio_device_controller.events.EventError):
+                self.ev_handler.listen_for_events(30)
+
+                self.assertTrue(self.mock_session.pause.call_count is 0)
+                self.assertTrue(self.mock_session.play.call_count is 0)
+                self.assertTrue(self.mock_session.active.call_count is 0)
+
     def test_listen_for_events_400(self):
         """
         Tests that the event listener works as intended in case there's a problem reaching the endpoint.

@@ -476,7 +476,7 @@ class DeviceControllerInitCleanupTest(unittest.TestCase):
             from audio_device_controller.core import AudioDeviceControllerCec
             from audio_device_controller.core import CecError
 
-            mock_subp.side_effect = OSError()
+            mock_subp.side_effect = FileNotFoundError()
 
             with self.assertRaises(CecError) as context:
                 controller = AudioDeviceControllerCec()

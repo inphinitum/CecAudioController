@@ -57,7 +57,7 @@ class EventHandler:
             else:
                 response = requests.get(self._config.rest_url, timeout=event_timeout)
         except requests.exceptions.Timeout as e:
-            raise EventError(e.message)
+            raise EventError("Request to " + self._config.rest_url + " timed out")
 
         # Evaluate successful response (code=200, json, well formed).
         if response.status_code is self._config.rest_success_code:
