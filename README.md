@@ -54,16 +54,10 @@ power_off_delay_mins = 10
 `EventServer` holds info about the REST endpoint, `MediaFormat` about the REST API message format,
 and `DeviceControl` about how the device should be controlled.
 
-## audio_controller
+## audio_device_controller
 
-`audio_controller` is provided as an example of how the library can be used standalone.
-
-```bash
-$ audio_controller -event_listener
-```
-```bash
-$ audio_controller -power_on
-```
-```bash
-$ audio_controller -standby
+``` bash
+usage: audio-dev-controller [-h] (-power_on | -standby | -event_listener)
+                            [-event_timeout EVENT_TIMEOUT] [-comm_type {cec}]
+                            [--debug]
 ```
