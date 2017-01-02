@@ -50,7 +50,7 @@ class EventHandlerTest(unittest.TestCase):
         with self.assertRaises(audio_device_controller.events.EventError) as context:
             response = "0123456789"
             self.ev_handler.process_json_response(response)
-        self.assertTrue("Response malformed." in str(context.exception))
+        self.assertTrue("Response malformed" in str(context.exception))
 
     def test_incorrect_response_format(self):
         """
@@ -68,7 +68,7 @@ class EventHandlerTest(unittest.TestCase):
 
         with self.assertRaises(audio_device_controller.events.EventError) as context:
             self.ev_handler.process_json_response(json)
-        self.assertTrue("Response malformed." in str(context.exception))
+        self.assertTrue("Response malformed" in str(context.exception))
         self.assertTrue(self.mock_session.play.call_count is 0)
         self.assertTrue(self.mock_session.pause.call_count is 0)
         self.assertTrue(self.mock_session.active.call_count is 0)
@@ -195,7 +195,7 @@ class EventHandlerTest(unittest.TestCase):
                 self.assertTrue(self.mock_session.pause.call_count is 0)
                 self.assertTrue(self.mock_session.play.call_count is 0)
                 self.assertTrue(self.mock_session.active.call_count is 0)
-        self.assertTrue("Response from " in str(context.exception))
+        self.assertTrue(self.mock_config.rest_url in str(context.exception))
 
     def test_listen_for_events_timeout(self):
         """

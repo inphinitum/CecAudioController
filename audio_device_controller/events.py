@@ -78,7 +78,7 @@ class EventHandler:
         :return: None
         """
 
-        logging.info("Event received: " + str(json_data))
+        logging.debug("Event received:\n---------" + str(json_data) + "\n---------")
 
         try:
             if self._config.events in json_data:
@@ -110,7 +110,7 @@ class EventHandler:
         elif n_type is self._config.pb_notif_stop or n_type is self._config.pb_notif_pause:
             self._session.pause(self._config.power_off_delay_mins * 60)
         else:
-            logging.warning("Type of playback event not recognised.")
+            logging.debug("Type of playback event not recognised.")
 
 
 class ConfigOptions:

@@ -75,7 +75,7 @@ class SystemTestCore(unittest.TestCase):
                 # Arguments for the entrypoint
                 from audio_device_controller import audiodevcontroller
 
-                sys.argv[1:] = ["-event_listener", "-event_timeout=1"]
+                sys.argv[1:] = ["-event_listener", "-event_timeout=1", "--debu"]
                 audiodevcontroller.entry()
 
                 calls = [call(["cec-client", "-s", "-d", "1"], input=b"lad", timeout=30),
