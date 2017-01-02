@@ -182,7 +182,7 @@ class ConfigOptions:
         # All possible locations for configuration files, in precedence order.
         import os
         config_files = [os.path.join(os.curdir, "config.ini"),
-                        os.path.join(os.path.expanduser("~/audio_device_controller"), "config.ini"),
+                        os.path.join(os.path.expanduser("~/.audio_device_controller"), "config.ini"),
                         os.path.join("/etc/audio_device_controller", "config.ini")]
 
         # Check that the parser could read at least one file, and then extract the data.
