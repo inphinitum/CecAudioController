@@ -64,7 +64,7 @@ class EventHandler:
             try:
                 self.process_json_response(response.json())
             except EventError as error:
-                raise EventError("Response from " + self._config.rest_url + error.message)
+                raise EventError(self._config.rest_url + " - " + error.message)
         else:
             raise EventError("Error: " + self._config.rest_url +
                              " responded with status code: " + str(response.status_code))
@@ -86,9 +86,9 @@ class EventHandler:
                     if self._config.pb_notif in event.keys():
                         self._process_single_playback_event(event)
             else:
-                raise EventError("Response malformed.")
+                raise EventError("Response malformed, block " + self._config.events + " not found.")
         except TypeError:
-            raise EventError("Response malformed.")
+            raise EventError("Response malformed, TypeError")
 
     def _process_single_playback_event(self, event):
         """
@@ -186,8 +186,7 @@ class ConfigOptions:
                         os.path.join(os.curdir, "config.ini")]
 
         read_files = config.read(config_files)
-        print("File config.ini found at:")
-        print(", ".join(read_files))
+        logging.debug("File(s) config.ini found at:" + ", ".join(read_files))
 
         # Check that the parser could read at least one file, and then extract the data.
         if len(read_files) > 0:
