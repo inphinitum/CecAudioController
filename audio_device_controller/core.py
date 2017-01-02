@@ -20,6 +20,12 @@ class Session:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.cleanup()
 
+    def __str__(self):
+        return "".join(
+            ["Session active: ", str(self._active), ", device on: ",
+             str(self._dev_on), ", timer on: ",
+             str(self._pause_timer is not None)])
+
     def initialize(self):
         self._dev_controller.initialize()
 
@@ -43,6 +49,8 @@ class Session:
         :return: None
         """
 
+        logging.debug("active() - " + str(self))
+
         if self._active is False and new_active is True:
             self._dev_controller.power_on()
             self._dev_on = True
@@ -60,6 +68,8 @@ class Session:
         the timer is cancelled.
         :return: None
         """
+
+        logging.debug("play() - " + str(self))
 
         if self._active:
             if self._pause_timer is not None:
@@ -79,6 +89,8 @@ class Session:
         :argument seconds: Number of seconds to wait until standby.
         :return: None
         """
+
+        logging.debug("pause() - " + str(self))
 
         if self._active:
             from threading import Timer
