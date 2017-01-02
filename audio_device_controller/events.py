@@ -182,11 +182,15 @@ class ConfigOptions:
         # All possible locations for configuration files, in precedence order.
         import os
         config_files = [os.path.join("/etc/audio-device-controller", "config.ini"),
-                        os.path.join(os.path.expanduser("~/.audio_device_controller"), "config.ini"),
+                        os.path.join(os.path.expanduser("~/.audio-device-controller"), "config.ini"),
                         os.path.join(os.curdir, "config.ini")]
 
+        read_files = config.read(config_files)
+        print("File config.ini found at:")
+        print(", ".join(read_files))
+
         # Check that the parser could read at least one file, and then extract the data.
-        if len(config.read(config_files)) > 0:
+        if len(read_files) > 0:
             self._rest_url                 = config.get("EventServer", "rest_url", fallback="")
             self._events                   = config.get("MediaFormat", "events", fallback="")
             self._pb_notif                 = config.get("MediaFormat", "pb_notif", fallback="")
