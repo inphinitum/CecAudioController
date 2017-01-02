@@ -56,7 +56,7 @@ class EventHandler:
                 response = requests.get(self._config.rest_url)
             else:
                 response = requests.get(self._config.rest_url, timeout=event_timeout)
-        except requests.exceptions.Timeout as e:
+        except requests.exceptions.Timeout:
             raise EventError("Request to " + self._config.rest_url + " timed out")
 
         # Evaluate successful response (code=200, json, well formed).
@@ -192,6 +192,8 @@ class ConfigOptions:
             self._pb_notif_active_device   = config.getint("MediaFormat", "pb_notif_active_device", fallback=-1)
             self._pb_notif_inactive_device = config.getint("MediaFormat", "pb_notif_inactive_device", fallback=-1)
             self._power_off_delay_mins     = config.getint("DeviceControl", "power_off_delay_mins", fallback=10)
+
+            logging.info(self)
         else:
             raise ValueError("Failed to open .audio_device_controller_config.ini")
 
