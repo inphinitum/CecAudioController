@@ -179,9 +179,13 @@ class ConfigOptions:
         config = configparser.ConfigParser()
         config.optionxform = str
 
-        # Check that the parser could read one file, and then extract the data.
-        config_files = ["~/.audio_device_controller_config.ini", ".sample_config.ini", "../.sample_config.ini"]
+        # All possible locations for configuration files, in precedence order.
+        import os
+        config_files = [os.path.join(os.curdir, "config.ini"),
+                        os.path.join(os.path.expanduser("~/audio_device_controller"), "config.ini"),
+                        os.path.join("/etc/audio_device_controller", "config.ini")]
 
+        # Check that the parser could read at least one file, and then extract the data.
         if len(config.read(config_files)) > 0:
             self._rest_url                 = config.get("EventServer", "rest_url", fallback="")
             self._events                   = config.get("MediaFormat", "events", fallback="")
@@ -195,7 +199,7 @@ class ConfigOptions:
 
             logging.info(self)
         else:
-            raise ValueError("Failed to open .audio_device_controller_config.ini")
+            raise ValueError("Failed to open config.ini")
 
     def __str__(self):  # pragma: no cover
         """
