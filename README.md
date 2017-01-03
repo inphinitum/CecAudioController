@@ -14,8 +14,33 @@ Can listen to events via a REST API, or be called with specific commands.
 ## Dependencies
 This project depends on [libcec](https://github.com/Pulse-Eight/libcec).
 
-## Examples
+## Installation for Raspbian
+First you will need to install `libcec`. [Trainman419](https://github.com/trainman419) has built a custom build with Raspberry Pi support:
+```
+wget http://packages.namniart.com/repos/namniart.key -O - | sudo apt-key add -
+sudo sh -c 'echo "deb http://packages.namniart.com/repos/pi wheezy main" > /etc/apt/sources.list.d/libcec.list'
+sudo apt-get update
+sudo apt-get install python-dev build-essential libcec-dev cec-utils
+```
+Make sure you have `python3` and `pip` installed:
+``` bash
+sudo apt-get install python3
+sudo apt-get install python3-pip
+```
+Download and install audio-device-controller:
+```
+wget https://github.com/inphinitum/audio-device-controller/releases/download/0.1.0-beta/audio_device_controller-0.1.0.dev0-py3-none-any.whl
+pip3 install audio_device_controller-0.1.0.dev0-py3-none-any.whl
+```
 
+## Examples
+Using the command line utility:
+``` bash
+usage: audio-dev-controller [-h] (-power_on | -standby | -event_listener)
+                            [-event_timeout EVENT_TIMEOUT] [-comm_type {cec}]
+                            [--debug]
+```
+Using the package from your code:
 ```python
 with SessionHandler() as session:
     session.active(True)
@@ -33,7 +58,12 @@ with EventHandler(session, config) as ev_handler:
 
 ## Configuration file
 
-The configuration file has the following format:
+The configuration file is only necessary when using the event_listener, and is read with the given precedence from:
+  1. ./config.ini
+  2. ~/.audio-device-controller/config.ini
+  3. /etc/audio-device-controller/config.ini
+
+It has the following format:
 ```
 [EventServer]
 rest_url=http://localhost:8080/endpoint
@@ -53,11 +83,3 @@ power_off_delay_mins = 10
 
 `EventServer` holds info about the REST endpoint, `MediaFormat` about the REST API message format,
 and `DeviceControl` about how the device should be controlled.
-
-## audio_device_controller
-
-``` bash
-usage: audio-dev-controller [-h] (-power_on | -standby | -event_listener)
-                            [-event_timeout EVENT_TIMEOUT] [-comm_type {cec}]
-                            [--debug]
-```
