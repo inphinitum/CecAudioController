@@ -1,16 +1,21 @@
 language: python
-
 python:
-  - "3.3"
-  - "3.4"
-  - "3.5"
-
+- '3.3'
+- '3.4'
+- '3.5'
 before_install:
-  - pip install codecov
-  - pip install coverage
-
+- pip install codecov
+- pip install coverage
 script:
-  - nosetests --with-coverage --cover-erase --cover-package=audio_device_controller
-
+- nosetests --with-coverage --cover-erase --cover-package=audio_device_controller
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+- bash <(curl -s https://codecov.io/bash)
+- python3 setup.py bdist_wheel
+deploy:
+  provider: releases
+  api_key:
+    secure: F12wNX7UwdT3U/kPjGNfZP1R4PKnUcw74gsnumpaLleSChCr6pcqlRExzFR0xmWLLMiE1NCvSUox3L72o80hHs/3MJc+xTKJ9gI9I2w2tVoT6teaBNPYxgh6FEi5PHLQxv3Jq/d095HKnWMYmvZ3m21nDGfpH7gOyd2bCnnduUcDgbzm1NP2f8Ynr5QIr5bpFYD5meI3IGEqjaTIDW6RJSYHdYWugMfaxn5hqEobZbUnQmihWlN5RPMUH0qzXpbZDupjhXC+lDrfBIEip0qTTSN47LynWsKyExwKJt2Bb0iUMYRQxv0G8j3HgRSOrRIx7WR5XmtCS2pl5H+TaWFGr1VvZN0SlkL3kGdmlqSHJbun4Zlss9gi6DFaxiCW/8UIttS4w/3ARiXQuOCdJBXDR/OYHfhJ6A6bSG7Nljk1AUJdc4ZH4obkdYw7XaqtOJHlgC8BlFCxumxxH8YcsFmH7UB1tOXBYt+Vh30uafyXr9PM8x7a3JJ0IigVnx2yxG8vCZOysU1Xo++JI+IDz+O+qDlFVUzcH5VzBhY7iZDB1+efYZkIcJkUxwgHilE9ORqguaAdsiHYc7O6hI80AoMQDyDgFLFStmMJR1DdvODadKKaUV8R8NirB9gIzhVrlIK1dNwkr5NIkYVo7ys79Nn3Q9DNJZ0DKdPiNRdIRqBSETc=
+  file: dist/*
+  on:
+    tags: true
+    repo: inphinitum/audio-device-controller
