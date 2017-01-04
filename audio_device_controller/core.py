@@ -53,6 +53,7 @@ class Session:
 
         if self._active is False and new_active is True:
             self._dev_controller.power_on()
+            self._dev_controller.set_active_source()
             self._dev_on = True
 
         elif self._active is True and new_active is False:
@@ -182,6 +183,15 @@ class AudioDeviceController:
 
         logging.info("Sending power on command to audio device...")
 
+    def set_active_source(self):
+        """
+        Sets this device active source in the audio device.
+
+        :return: None
+        """
+
+        logging.info("Sending active source to audio device...")
+
     def standby(self):
         """
         Make sure any pending delayed_standby is cancelled.
@@ -228,6 +238,19 @@ class AudioDeviceControllerCec(AudioDeviceController):
 
         super().power_on()
         self.__cec_command(b"on 5")
+
+    def set_active_source(self):
+        """
+        Sets the active source in the audio device as this device.
+
+        Raises:
+             CecError -- in case cec-client is unresponsive.
+
+        :return: None
+        """
+
+        super().set_active_source()
+        self.__cec_command(b"as")
 
     def standby(self):
         """

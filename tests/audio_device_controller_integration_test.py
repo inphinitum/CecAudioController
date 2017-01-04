@@ -34,7 +34,8 @@ class SystemTestCore(unittest.TestCase):
             audiodevcontroller.entry()
 
             calls = [call(["cec-client", "-s", "-d", "1"], input=b"lad", timeout=30),
-                     call(["cec-client", "-s", "-d", "1"], input=b"on 5", timeout=30)]
+                     call(["cec-client", "-s", "-d", "1"], input=b"on 5", timeout=30),
+                     call(["cec-client", "-s", "-d", "1"], input=b"as", timeout=30)]
             mock_subp.assert_has_calls(calls)
 
     @staticmethod
@@ -80,5 +81,6 @@ class SystemTestCore(unittest.TestCase):
 
                 calls = [call(["cec-client", "-s", "-d", "1"], input=b"lad", timeout=30),
                          call(["cec-client", "-s", "-d", "1"], input=b"on 5", timeout=30),
+                         call(["cec-client", "-s", "-d", "1"], input=b"as", timeout=30),
                          call(["cec-client", "-s", "-d", "1"], input=b"standby 5", timeout=30)]
                 mock_subp.assert_has_calls(calls)
