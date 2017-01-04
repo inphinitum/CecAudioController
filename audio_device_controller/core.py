@@ -52,8 +52,8 @@ class Session:
         logging.debug("active() - " + str(self))
 
         if self._active is False and new_active is True:
-            self._dev_controller.power_on()
             self._dev_controller.set_active_source()
+            self._dev_controller.power_on()
             self._dev_on = True
 
         elif self._active is True and new_active is False:
