@@ -52,7 +52,6 @@ class Session:
         logging.debug("active() - " + str(self))
 
         if self._active is False and new_active is True:
-            self._dev_controller.set_active_source()
             self._dev_controller.power_on()
             self._dev_on = True
 
@@ -183,7 +182,7 @@ class AudioDeviceController:
 
         logging.info("Sending power on command to audio device...")
 
-    def set_active_source(self):
+    def select_source(self):
         """
         Sets this device active source in the audio device.
 
@@ -226,6 +225,14 @@ class AudioDeviceControllerCec(AudioDeviceController):
         except FileNotFoundError:
             raise CecError("cec-client not found.")
 
+    def cleanup(self):
+        """
+        Base method for cleaning up the object. Cancels any ongoing timer.
+
+        :return: None
+        """
+        super().cleanup()
+
     def power_on(self):
         """
         Power on the audio device.
@@ -237,9 +244,11 @@ class AudioDeviceControllerCec(AudioDeviceController):
         """
 
         super().power_on()
+        self.__cec_command(b"tx 45:7D:01")
+        self.__cec_command(b"as")
         self.__cec_command(b"on 5")
 
-    def set_active_source(self):
+    def select_source(self):
         """
         Sets the active source in the audio device as this device.
 
@@ -249,7 +258,8 @@ class AudioDeviceControllerCec(AudioDeviceController):
         :return: None
         """
 
-        super().set_active_source()
+        super().select_source()
+        self.__cec_command(b"tx 45:7d:01")
         self.__cec_command(b"as")
 
     def standby(self):
@@ -276,7 +286,7 @@ class AudioDeviceControllerCec(AudioDeviceController):
         import subprocess
 
         try:
-            return subprocess.check_output(["cec-client", "-s", "-d", "1"], input=command, timeout=30)
+            return subprocess.check_output(["cec-client", "-t", "p", "-s", "-d", "1"], input=command, timeout=30)
 
         except OSError:
             raise CecError("cec-client not found.")

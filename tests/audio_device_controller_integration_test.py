@@ -19,7 +19,7 @@ class SystemTestCore(unittest.TestCase):
         """
 
         mock_subp.assert_called_once_with(
-            ["cec-client", "-s", "-d", "1"], input=command, timeout=30)
+            ["cec-client", "-t", "p", "-s", "-d", "1"], input=command, timeout=30)
 
     @staticmethod
     def test_play():
@@ -33,9 +33,10 @@ class SystemTestCore(unittest.TestCase):
             sys.argv[1:] = ["-power_on", "--debug"]
             audiodevcontroller.entry()
 
-            calls = [call(["cec-client", "-s", "-d", "1"], input=b"lad", timeout=30),
-                     call(["cec-client", "-s", "-d", "1"], input=b"on 5", timeout=30),
-                     call(["cec-client", "-s", "-d", "1"], input=b"as", timeout=30)]
+            calls = [call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"lad", timeout=30),
+                     call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"tx 45:7D:01", timeout=30),
+                     call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"as", timeout=30),
+                     call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"on 5", timeout=30)]
             mock_subp.assert_has_calls(calls)
 
     @staticmethod
@@ -49,8 +50,8 @@ class SystemTestCore(unittest.TestCase):
             sys.argv[1:] = ["-standby", "--debug"]
             audiodevcontroller.entry()
 
-            calls = [call(["cec-client", "-s", "-d", "1"], input=b"lad", timeout=30),
-                     call(["cec-client", "-s", "-d", "1"], input=b"standby 5", timeout=30)]
+            calls = [call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"lad", timeout=30),
+                     call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"standby 5", timeout=30)]
             mock_subp.assert_has_calls(calls)
 
     @staticmethod
@@ -76,11 +77,12 @@ class SystemTestCore(unittest.TestCase):
                 # Arguments for the entrypoint
                 from audio_device_controller import audiodevcontroller
 
-                sys.argv[1:] = ["-event_listener", "-event_timeout=1", "--debu"]
+                sys.argv[1:] = ["-event_listener", "-event_timeout=1", "--debug"]
                 audiodevcontroller.entry()
 
-                calls = [call(["cec-client", "-s", "-d", "1"], input=b"lad", timeout=30),
-                         call(["cec-client", "-s", "-d", "1"], input=b"as", timeout=30),
-                         call(["cec-client", "-s", "-d", "1"], input=b"on 5", timeout=30),
-                         call(["cec-client", "-s", "-d", "1"], input=b"standby 5", timeout=30)]
+                calls = [call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"lad", timeout=30),
+                         call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"tx 45:7D:01", timeout=30),
+                         call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"as", timeout=30),
+                         call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"on 5", timeout=30),
+                         call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"standby 5", timeout=30)]
                 mock_subp.assert_has_calls(calls)

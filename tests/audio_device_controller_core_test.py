@@ -87,7 +87,6 @@ class SessionHandlerTest(unittest.TestCase):
 
         with audio_device_controller.core.Session(mock_dev_ctrl) as session:
             session.active(True)
-            mock_dev_ctrl.set_active_source.assert_called_once_with()
             mock_dev_ctrl.power_on.assert_called_with()
             mock_dev_ctrl.standby.assert_not_called()
             self.assertTrue(self.match_internal_state(session, "Active"))
@@ -109,7 +108,6 @@ class SessionHandlerTest(unittest.TestCase):
 
             session.active(True)
             mock_dev_ctrl.power_on.assert_not_called()
-            mock_dev_ctrl.set_active_source.assert_not_called()
             mock_dev_ctrl.standby.assert_not_called()
 
             self.assertTrue(self.match_internal_state(session, "Active"))
@@ -131,7 +129,6 @@ class SessionHandlerTest(unittest.TestCase):
 
             session.active(False)
             mock_dev_ctrl.power_on.assert_not_called()
-            mock_dev_ctrl.set_active_source.assert_not_called()
             mock_dev_ctrl.standby.assert_called_once_with()
 
             self.assertTrue(self.match_internal_state(session, "Inactive"))
@@ -150,7 +147,6 @@ class SessionHandlerTest(unittest.TestCase):
         with audio_device_controller.core.Session(mock_dev_ctrl) as session:
             session.active(False)
             mock_dev_ctrl.power_on.assert_not_called()
-            mock_dev_ctrl.set_active_source.assert_not_called()
             mock_dev_ctrl.standby.assert_not_called()
 
             self.assertTrue(self.match_internal_state(session, "Inactive"))
@@ -179,7 +175,6 @@ class SessionHandlerTest(unittest.TestCase):
                 mock_timer.cancel.assert_called_once_with()
                 self.assertIs(session._pause_timer, None)
                 mock_dev_ctrl.power_on.assert_not_called()
-                mock_dev_ctrl.set_active_source.assert_not_called()
                 mock_dev_ctrl.standby.assert_called_once_with()
 
                 self.assertTrue(self.match_internal_state(session, "Inactive"))
@@ -201,7 +196,6 @@ class SessionHandlerTest(unittest.TestCase):
 
             session.play()
             mock_dev_ctrl.power_on.assert_not_called()
-            mock_dev_ctrl.set_active_source.assert_not_called()
             mock_dev_ctrl.standby.assert_not_called()
 
             self.assertTrue(self.match_internal_state(session, "Playing"))
@@ -224,7 +218,6 @@ class SessionHandlerTest(unittest.TestCase):
 
             session.play()
             mock_dev_ctrl.power_on.assert_called_with()
-            mock_dev_ctrl.set_active_source.assert_not_called()
             mock_dev_ctrl.standby.not_called()
 
             self.assertTrue(self.match_internal_state(session, "Playing"))
@@ -251,7 +244,6 @@ class SessionHandlerTest(unittest.TestCase):
                 session.play()
                 mock_timer.cancel.called_once_with_args()
                 mock_dev_ctrl.power_on.not_called()
-                mock_dev_ctrl.set_active_source.assert_not_called()
                 mock_dev_ctrl.standby.not_called()
 
                 self.assertTrue(self.match_internal_state(session, "Playing"))
@@ -270,7 +262,6 @@ class SessionHandlerTest(unittest.TestCase):
         with audio_device_controller.core.Session(mock_dev_ctrl) as session:
             session.play()
             mock_dev_ctrl.power_on.not_called()
-            mock_dev_ctrl.set_active_source.assert_not_called()
             mock_dev_ctrl.standby.not_called()
 
             self.assertTrue(self.match_internal_state(session, "Inactive"))
@@ -291,7 +282,6 @@ class SessionHandlerTest(unittest.TestCase):
 
             with audio_device_controller.core.Session(mock_dev_ctrl) as session:
                 session.active(True)
-                mock_dev_ctrl.set_active_source.assert_called_once_with()
                 session.pause(10)
 
                 mock_timer.start.called_once_with_args(10, session._send_standby)
@@ -316,7 +306,6 @@ class SessionHandlerTest(unittest.TestCase):
 
             with audio_device_controller.core.Session(mock_dev_ctrl) as session:
                 session.active(True)
-                mock_dev_ctrl.set_active_source.assert_called_once_with()
                 session.pause(10)
 
                 mock_timer.start.called_once_with_args(10, session._send_standby())
@@ -345,7 +334,6 @@ class SessionHandlerTest(unittest.TestCase):
 
             with audio_device_controller.core.Session(mock_dev_ctrl) as session:
                 session.active(True)
-                mock_dev_ctrl.set_active_source.assert_called_once_with()
                 session.pause(10)
                 mock_timer.reset_mock()
 
@@ -375,7 +363,6 @@ class SessionHandlerTest(unittest.TestCase):
                 session.pause(10)
                 self.assertIsNone(session._pause_timer)
                 mock_dev_ctrl.power_on.not_called()
-                mock_dev_ctrl.set_active_source.assert_not_called()
                 mock_dev_ctrl.standby.not_called()
 
                 self.assertTrue(self.match_internal_state(session, "Inactive"))
@@ -402,20 +389,24 @@ class DeviceControllerCecTest(unittest.TestCase):
 
             self.controller = AudioDeviceControllerCec()
             self.controller.initialize()
-            self.assert_check_output(mock_subp, b"lad")
+            self.assert_check_output(mock_subp, [b"lad"])
 
-    @staticmethod
-    def assert_check_output(mock_subp, command):
+    def assert_check_output(self, mock_subp, command_list):
         """
         Auxiliary method.
         :param mock_subp: Mock object for subprocess
         :param command: Input bytes literal to be sent to check_output
         :return: None
         """
+        from unittest.mock import call
 
-        mock_subp.assert_called_once_with(
-            ["cec-client", "-s", "-d", "1"], input=command, timeout=30)
+        calls = []
 
+        for command in command_list:
+            calls.append(call(["cec-client", "-t", "p", "-s", "-d", "1"], input=command, timeout=30))
+
+        mock_subp.assert_has_calls(calls)
+        self.assertTrue(mock_subp.call_count == len(calls))
 
     def tearDown(self):
         """
@@ -437,14 +428,7 @@ class DeviceControllerCecTest(unittest.TestCase):
             mock_subp.return_value = b""
 
             self.controller.power_on()
-            self.assert_check_output(mock_subp, b"on 5")
-
-    def test_set_active_source(self):
-        with patch("subprocess.check_output", spec=True) as mock_subp:
-            mock_subp.return_value = b""
-
-            self.controller.set_active_source()
-            self.assert_check_output(mock_subp, b"as")
+            self.assert_check_output(mock_subp, [b"tx 45:7D:01", b"as", b"on 5"])
 
     def test_power_on_cec_fail(self):
         """
@@ -463,7 +447,7 @@ class DeviceControllerCecTest(unittest.TestCase):
             with self.assertRaises(CecError) as context:
                 self.controller.power_on()
 
-            self.assert_check_output(mock_subp, b"on 5")
+            self.assert_check_output(mock_subp, [b"tx 45:7D:01"])
             self.assertTrue("cec-client unresponsive." in context.exception.message)
 
     def test_standby(self):
@@ -477,7 +461,7 @@ class DeviceControllerCecTest(unittest.TestCase):
             mock_subp.return_value = b""
 
             self.controller.standby()
-            self.assert_check_output(mock_subp, b"standby 5")
+            self.assert_check_output(mock_subp, [b"standby 5"])
 
 
 class DeviceControllerInitCleanupTest(unittest.TestCase):

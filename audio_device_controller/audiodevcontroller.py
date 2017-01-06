@@ -42,7 +42,6 @@ def entry():
         if arguments.power_on:
             with AudioDeviceControllerCec() as controller:
                 controller.power_on()
-                controller.set_active_source()
 
         elif arguments.standby:
             with AudioDeviceControllerCec() as controller:
