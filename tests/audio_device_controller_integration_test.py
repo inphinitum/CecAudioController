@@ -25,7 +25,7 @@ class SystemTestCore(unittest.TestCase):
     def test_play():
 
         with patch("subprocess.check_output", spec=True) as mock_subp:
-            mock_subp.return_value = b"logical address 5"
+            mock_subp.return_value = b"device 5 is active"
 
             # Arguments for the entrypoint
             from audio_device_controller import audiodevcontroller
@@ -33,16 +33,14 @@ class SystemTestCore(unittest.TestCase):
             sys.argv[1:] = ["-power_on", "--debug"]
             audiodevcontroller.entry()
 
-            calls = [call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"lad", timeout=30),
-                     call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"tx 45:7D:01", timeout=30),
-                     call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"as", timeout=30),
-                     call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"on 5", timeout=30)]
+            calls = [call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"at a", timeout=30),
+                     call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"tx 45:70:45:00", timeout=30)]
             mock_subp.assert_has_calls(calls)
 
     @staticmethod
     def test_standby():
         with patch("subprocess.check_output", spec=True) as mock_subp:
-            mock_subp.return_value = b"logical address 5"
+            mock_subp.return_value = b"device 5 is active"
 
             # Arguments for the entrypoint
             from audio_device_controller import audiodevcontroller
@@ -50,7 +48,7 @@ class SystemTestCore(unittest.TestCase):
             sys.argv[1:] = ["-standby", "--debug"]
             audiodevcontroller.entry()
 
-            calls = [call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"lad", timeout=30),
+            calls = [call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"at a", timeout=30),
                      call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"standby 5", timeout=30)]
             mock_subp.assert_has_calls(calls)
 
@@ -60,7 +58,7 @@ class SystemTestCore(unittest.TestCase):
         from audio_device_controller.events import ConfigOptions
 
         with patch("subprocess.check_output", spec=True) as mock_subp:
-            mock_subp.return_value = b"logical address 5"
+            mock_subp.return_value = b"device 5 is active"
 
             with patch("requests.get") as get_mock:
                 config = ConfigOptions()
@@ -80,9 +78,7 @@ class SystemTestCore(unittest.TestCase):
                 sys.argv[1:] = ["-event_listener", "-event_timeout=1", "--debug"]
                 audiodevcontroller.entry()
 
-                calls = [call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"lad", timeout=30),
-                         call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"tx 45:7D:01", timeout=30),
-                         call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"as", timeout=30),
-                         call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"on 5", timeout=30),
+                calls = [call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"at a", timeout=30),
+                         call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"tx 45:70:45:00", timeout=30),
                          call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"standby 5", timeout=30)]
                 mock_subp.assert_has_calls(calls)

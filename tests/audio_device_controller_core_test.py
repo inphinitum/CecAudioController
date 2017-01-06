@@ -382,14 +382,14 @@ class DeviceControllerCecTest(unittest.TestCase):
 
         with patch("subprocess.check_output", spec=True) as mock_subp:
             mock_subp.return_value = (
-                b"opening a connection to the CEC adapter...\nlisting active devices:\nlogical address 5\n")
+                b"opening a connection to the CEC adapter...\nlisting active devices:\ndevice 5 is active\n")
 
             # Control the cec-client is invoked properly, audio device searched and found
             from audio_device_controller.core import AudioDeviceControllerCec
 
             self.controller = AudioDeviceControllerCec()
             self.controller.initialize()
-            self.assert_check_output(mock_subp, [b"lad"])
+            self.assert_check_output(mock_subp, [b"at a"])
 
     def assert_check_output(self, mock_subp, command_list):
         """
@@ -428,7 +428,7 @@ class DeviceControllerCecTest(unittest.TestCase):
             mock_subp.return_value = b""
 
             self.controller.power_on()
-            self.assert_check_output(mock_subp, [b"tx 45:7D:01", b"as", b"on 5"])
+            self.assert_check_output(mock_subp, [b"tx 45:70:45:00"])
 
     def test_power_on_cec_fail(self):
         """
@@ -447,7 +447,7 @@ class DeviceControllerCecTest(unittest.TestCase):
             with self.assertRaises(CecError) as context:
                 self.controller.power_on()
 
-            self.assert_check_output(mock_subp, [b"tx 45:7D:01"])
+            self.assert_check_output(mock_subp, [b"tx 45:70:45:00"])
             self.assertTrue("cec-client unresponsive." in context.exception.message)
 
     def test_standby(self):

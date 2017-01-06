@@ -217,9 +217,9 @@ class AudioDeviceControllerCec(AudioDeviceController):
 
         try:
             import subprocess
-            output = self.__cec_command(b"lad").decode()
+            output = self.__cec_command(b"at a").decode()
 
-            if "logical address 5" not in output:
+            if "device 5 is active" not in output:
                 raise CecError("cec-client does not find audio device.")
 
         except FileNotFoundError:
@@ -244,9 +244,7 @@ class AudioDeviceControllerCec(AudioDeviceController):
         """
 
         super().power_on()
-        self.__cec_command(b"tx 45:7D:01")
-        self.__cec_command(b"as")
-        self.__cec_command(b"on 5")
+        self.__cec_command(b"tx 45:70:45:00")
 
     def select_source(self):
         """
@@ -259,8 +257,7 @@ class AudioDeviceControllerCec(AudioDeviceController):
         """
 
         super().select_source()
-        self.__cec_command(b"tx 45:7d:01")
-        self.__cec_command(b"as")
+        self.__cec_command(b"tx 45:70:45:00")
 
     def standby(self):
         """
