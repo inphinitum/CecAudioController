@@ -244,6 +244,11 @@ class AudioDeviceControllerCec(AudioDeviceController):
         """
 
         super().power_on()
+
+        # command 45:70:45:00
+        # From logical address 4 (player) to 5 (audio)
+        # System audio mode request opcode: 0x70
+        # Physical address of source to be used: 4.5.0.0
         self.__cec_command(b"tx 45:70:45:00")
 
     def select_source(self):
@@ -257,6 +262,11 @@ class AudioDeviceControllerCec(AudioDeviceController):
         """
 
         super().select_source()
+
+        # command 45:70:45:00
+        # From logical address 4 (player) to 5 (audio)
+        # System audio mode request opcode: 0x70
+        # Physical address of source to be used: 4.5.0.0
         self.__cec_command(b"tx 45:70:45:00")
 
     def standby(self):
