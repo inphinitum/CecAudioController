@@ -15,7 +15,7 @@ after_success:
 - bash <(curl -s https://codecov.io/bash)
 - python3 setup.py bdist_wheel -d .
 - echo $PWD
-- echo dist/*whl
+- echo dist/*.whl
 
 deploy:
   skip_cleanup: true
