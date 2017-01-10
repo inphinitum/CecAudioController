@@ -1,6 +1,8 @@
 import unittest
-from unittest.mock import patch
-from unittest.mock import Mock
+try:
+    from unittest.mock import patch, Mock
+except ImportError:
+    from mock import patch, Mock
 
 import audio_device_controller
 

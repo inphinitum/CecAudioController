@@ -1,1 +1,5 @@
-requests
+chardet;         python_version < "3.3"
+mock;            python_version < "3.3"
+requests;        python_version > "3.2"
+requests==1.0.0; python_version < "3.3"
+urllib3;         python_version < "3.3"

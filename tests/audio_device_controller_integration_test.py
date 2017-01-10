@@ -1,9 +1,9 @@
 import sys
 import unittest
-from unittest.mock import call
-from unittest.mock import Mock
-from unittest.mock import patch
-
+try:
+    from unittest.mock import call, patch, Mock
+except ImportError:
+    from mock import call, patch, Mock
 
 
 class SystemTestCore(unittest.TestCase):

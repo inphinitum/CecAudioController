@@ -1,8 +1,8 @@
 import unittest
-
-from unittest.mock import Mock
-from unittest.mock import patch
-from unittest.mock import call
+try:
+    from unittest.mock import call, patch, Mock
+except ImportError:
+    from mock import call, patch, Mock
 
 
 class EventHandlerTest(unittest.TestCase):

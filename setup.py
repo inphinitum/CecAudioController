@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from setuptools import setup, find_packages
-
 import audio_device_controller
 
+from setuptools import setup, find_packages
 
-NAME = "audio_device_controller"
-VERSION = str(audio_device_controller.VERSION)
 
 with open("requirements.txt") as reqs_file:
     required = reqs_file.read().splitlines()
+
+NAME = "audio_device_controller"
+VERSION = str(audio_device_controller.VERSION)
 
 setup(
     name=NAME,
