@@ -1,3 +1,4 @@
+import cec
 import logging
 
 
@@ -206,6 +207,12 @@ class AudioDeviceControllerCec(AudioDeviceController):
     Controller of devices that are cec-compatible.
     """
 
+    def __init__(self):
+        super(AudioDeviceController, self).__init__()
+
+        self.cec_config = None
+        self.cec_lib = None
+
     def initialize(self):
         """
         Makes sure everything is initialized to control the audio device via CEC.
@@ -215,15 +222,23 @@ class AudioDeviceControllerCec(AudioDeviceController):
         """
         super().initialize()
 
-        try:
-            import subprocess
-            output = self.__cec_command(b"at a").decode()
+        self.cec_config = cec.libcec_configuration()
+        self.cec_config.strDeviceName = "audiodevctrl"
+        self.cec_config.cActivateSource = 0
+        self.cec_config.deviceTypes.Add(cec.CEC_DEVICE_TYPE_PLAYBACK_DEVICE)
+        self.cec_config.clientVersion = cec.LIBCEC_VERSION_CURRENT
 
-            if "device 5 is active" not in output:
-                raise CecError("cec-client does not find audio device.")
+        self.cec_lib = cec.ICECAdapter.Create(self.cec_config)
 
-        except FileNotFoundError:
-            raise CecError("cec-client not found.")
+        adapter = self.cec_lib.DetectAdapters()[0]
+
+        if adapter is None:
+            raise CecError("CEC adapter not found.")
+        elif self.cec_lib.Open(adapter) is not True:
+            raise CecError("Could not open CEC adapter.")
+
+        if self.cec_lib.PollDevice(cec.CECDEVICE_AUDIOSYSTEM) is False:
+            raise CecError("cec-client does not find audio device.")
 
     def cleanup(self):
         """
