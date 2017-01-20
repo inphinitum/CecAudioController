@@ -19,7 +19,7 @@ addons:
     - swig
 
 before_install:
-- pip3 install coverage codecov
+- pip install coverage codecov
 - bash install-libcec.sh
 - export PYTHONPATH=$PYTHONPATH:$HOME/env/lib/python3.5/site-packages
 - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/env/lib:$HOME/env/lib/python3.5/site-packages/cec
