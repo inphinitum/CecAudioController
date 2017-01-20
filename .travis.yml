@@ -33,7 +33,7 @@ script:
 
 after_success:
 - bash <(curl -s https://codecov.io/bash)
-- python3 setup.py bdist_wheel
+- python setup.py bdist_wheel
 - "whl_file=$(echo dist/*.whl)"
 
 deploy:
