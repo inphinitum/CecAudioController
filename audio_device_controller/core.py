@@ -311,7 +311,7 @@ class AudioDeviceControllerCec(AudioDeviceController):
         import subprocess
 
         try:
-            return subprocess.check_output(["cec-client", "-t", "p", "-s", "-d", "1"], input=command, timeout=30)
+            return subprocess.check_output(["cec-client", "-t", "p", "-d", "1", "-s"], input=command, timeout=30)
 
         except OSError:
             raise CecError("cec-client not found.")

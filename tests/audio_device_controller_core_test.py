@@ -409,7 +409,7 @@ class DeviceControllerCecTest(unittest.TestCase):
         calls = []
 
         for command in command_list:
-            calls.append(call(["cec-client", "-t", "p", "-s", "-d", "1"], input=command, timeout=30))
+            calls.append(call(["cec-client", "-t", "p", "-d", "1", "-s"], input=command, timeout=30))
 
         mock_subp.assert_has_calls(calls)
         self.assertTrue(mock_subp.call_count == len(calls))

@@ -1,9 +1,6 @@
 import sys
 import unittest
-try:
-    from unittest.mock import call, patch, Mock
-except ImportError:
-    from mock import call, patch, Mock
+from unittest.mock import call, patch, Mock
 
 
 class SystemTestCore(unittest.TestCase):
@@ -21,7 +18,7 @@ class SystemTestCore(unittest.TestCase):
         """
 
         mock_subp.assert_called_once_with(
-            ["cec-client", "-t", "p", "-s", "-d", "1"], input=command, timeout=30)
+            ["cec-client", "-t", "p", "-d", "1", "-s"], input=command, timeout=30)
 
     @patch("cec.libcec_configuration")
     @patch("cec.ICECAdapter")
@@ -47,7 +44,7 @@ class SystemTestCore(unittest.TestCase):
             import cec
 
             mock_lib.PollDevice.assert_called_with(cec.CECDEVICE_AUDIOSYSTEM)
-            calls = [call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"tx 45:70:45:00", timeout=30)]
+            calls = [call(["cec-client", "-t", "p", "-d", "1", "-s"], input=b"tx 45:70:45:00", timeout=30)]
             mock_subp.assert_has_calls(calls)
 
     @patch("cec.libcec_configuration")
@@ -71,7 +68,7 @@ class SystemTestCore(unittest.TestCase):
             sys.argv[1:] = ["-standby", "--debug"]
             audiodevcontroller.entry()
 
-            calls = [call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"standby 5", timeout=30)]
+            calls = [call(["cec-client", "-t", "p", "-d", "1", "-s"], input=b"standby 5", timeout=30)]
             mock_subp.assert_has_calls(calls)
 
     @patch("cec.libcec_configuration")
@@ -109,6 +106,6 @@ class SystemTestCore(unittest.TestCase):
                 sys.argv[1:] = ["-event_listener", "-event_timeout=1", "--debug"]
                 audiodevcontroller.entry()
 
-                calls = [call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"tx 45:70:45:00", timeout=30),
-                         call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"standby 5", timeout=30)]
+                calls = [call(["cec-client", "-t", "p", "-d", "1", "-s"], input=b"tx 45:70:45:00", timeout=30),
+                         call(["cec-client", "-t", "p", "-d", "1", "-s"], input=b"standby 5", timeout=30)]
                 mock_subp.assert_has_calls(calls)
