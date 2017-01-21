@@ -1,8 +1,6 @@
 #!/bin/sh
 set -e
 
-export PATH=$HOME/env/bin:$PATH
-
 if [ ! -d "$HOME/env" ]; then
   mkdir $HOME/env
 fi
@@ -29,6 +27,9 @@ if [ ! -d "$HOME/env/bin" ]; then
   env CC=/usr/bin/gcc-4.8 CXX=/usr/bin/g++-4.8 ./bootstrap --prefix=$HOME/env
   cmake -DCMAKE_INSTALL_PREFIX=$HOME/env -DCMAKE_C_COMPILER=/usr/bin/gcc-4.8 -DCMAKE_CXX_COMPILER=/usr/bin/g++-4.8 .
   make -j2 && make install
+
+  # Use locally compiled cmake
+  export PATH=$HOME/env/bin:$PATH
 
   # Download and build p8-platform, needed by libcec
   cd $HOME/src
