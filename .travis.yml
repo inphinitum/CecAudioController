@@ -25,6 +25,8 @@ before_install:
 - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/env/lib:$HOME/env/lib/python3.5/site-packages/cec
 
 before_script:
+- ls -R $HOME
+- ls -R $HOME/env
 - ls -R $HOME/env/bin
 - ls -R $HOME/env/lib
 
