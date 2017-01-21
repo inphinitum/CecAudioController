@@ -130,12 +130,6 @@ class AudioDeviceController:
     Base class for device controllers.
     """
 
-    def __init__(self):
-        """
-        Default constructor.
-        """
-        pass
-
     def __enter__(self):
         """
         Initializes the controller.
@@ -231,11 +225,11 @@ class AudioDeviceControllerCec(AudioDeviceController):
 
         self._cec_lib = cec.ICECAdapter.Create(self._cec_config)
 
-        adapter = self._cec_lib.DetectAdapters()[0]
+        adapters = self._cec_lib.DetectAdapters()
 
-        if adapter is None:
+        if adapters is None or adapters[0] is None:
             raise CecError("CEC adapter not found.")
-        elif self._cec_lib.Open(adapter.strComName) is not True:
+        elif self._cec_lib.Open(adapters[0].strComName) is not True:
             raise CecError("Could not open CEC adapter.")
 
         if self._cec_lib.PollDevice(cec.CECDEVICE_AUDIOSYSTEM) is True:
