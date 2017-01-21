@@ -1,3 +1,4 @@
+import cec
 import logging
 
 
@@ -129,12 +130,6 @@ class AudioDeviceController:
     Base class for device controllers.
     """
 
-    def __init__(self):
-        """
-        Default constructor.
-        """
-        pass
-
     def __enter__(self):
         """
         Initializes the controller.
@@ -206,6 +201,13 @@ class AudioDeviceControllerCec(AudioDeviceController):
     Controller of devices that are cec-compatible.
     """
 
+    def __init__(self):
+        super(AudioDeviceController, self).__init__()
+
+        self._cec_config = None
+        self._cec_lib = None
+        self._audio_device = None
+
     def initialize(self):
         """
         Makes sure everything is initialized to control the audio device via CEC.
@@ -215,15 +217,25 @@ class AudioDeviceControllerCec(AudioDeviceController):
         """
         super().initialize()
 
-        try:
-            import subprocess
-            output = self.__cec_command(b"at a").decode()
+        self._cec_config = cec.libcec_configuration()
+        self._cec_config.strDeviceName = "audiodevctrl"
+        self._cec_config.cActivateSource = 0
+        self._cec_config.deviceTypes.Add(cec.CEC_DEVICE_TYPE_PLAYBACK_DEVICE)
+        self._cec_config.clientVersion = cec.LIBCEC_VERSION_CURRENT
 
-            if "device 5 is active" not in output:
-                raise CecError("cec-client does not find audio device.")
+        self._cec_lib = cec.ICECAdapter.Create(self._cec_config)
 
-        except FileNotFoundError:
-            raise CecError("cec-client not found.")
+        adapters = self._cec_lib.DetectAdapters()
+
+        if adapters is None or adapters[0] is None:
+            raise CecError("CEC adapter not found.")
+        elif self._cec_lib.Open(adapters[0].strComName) is not True:
+            raise CecError("Could not open CEC adapter.")
+
+        if self._cec_lib.PollDevice(cec.CECDEVICE_AUDIOSYSTEM) is True:
+            logging.info("Audio device detected: " + self._cec_lib.GetDeviceOSDName(cec.CECDEVICE_AUDIOSYSTEM))
+        else:
+            raise CecError("cec-client does not find audio device.")
 
     def cleanup(self):
         """
@@ -245,11 +257,7 @@ class AudioDeviceControllerCec(AudioDeviceController):
 
         super().power_on()
 
-        # command 45:70:45:00
-        # From logical address 4 (player) to 5 (audio)
-        # System audio mode request opcode: 0x70
-        # Physical address of source to be used: 4.5.0.0
-        self.__cec_command(b"tx 45:70:45:00")
+        self.select_source()
 
     def select_source(self):
         """
@@ -293,7 +301,7 @@ class AudioDeviceControllerCec(AudioDeviceController):
         import subprocess
 
         try:
-            return subprocess.check_output(["cec-client", "-t", "p", "-s", "-d", "1"], input=command, timeout=30)
+            return subprocess.check_output(["cec-client", "-t", "p", "-d", "1", "-s"], input=command, timeout=30)
 
         except OSError:
             raise CecError("cec-client not found.")
