@@ -430,44 +430,19 @@ class DeviceControllerCecTest(unittest.TestCase):
         :return: None
         """
 
-        with patch("subprocess.check_output", spec=True) as mock_subp:
-            mock_subp.return_value = b""
+        self.controller.power_on()
+        self.mock_lib.AudioEnable.assert_called_once_with(True)
 
-            self.controller.power_on()
-            self.assert_check_output(mock_subp, [b"tx 45:70:45:00"])
-
-    def test_power_on_cec_fail(self):
-        """
-        Test single command power_on with failure to communicate with cec.
-
-        :return: None
-        """
-
-        # Control that the command to power on the audio device is sent, and timer not cancelled
-        from audio_device_controller.core import CecError
-        from subprocess import TimeoutExpired
-
-        with patch("subprocess.check_output", spec=True) as mock_subp:
-            mock_subp.side_effect = TimeoutExpired("", 15)
-
-            with self.assertRaises(CecError) as context:
-                self.controller.power_on()
-
-            self.assert_check_output(mock_subp, [b"tx 45:70:45:00"])
-            self.assertTrue("cec-client unresponsive." in context.exception.message)
-
-    def test_standby(self):
+    @patch("cec.ICECAdapter")
+    def test_standby(self, mock_lib):
         """
         Test single command standby.
 
         :return: None
         """
 
-        with patch("subprocess.check_output", spec=True) as mock_subp:
-            mock_subp.return_value = b""
-
-            self.controller.standby()
-            self.assert_check_output(mock_subp, [b"standby 5"])
+        self.controller.standby()
+        self.mock_lib.StandbyDevices.assert_called_once_with()
 
 
 class DeviceControllerInitCleanupTest(unittest.TestCase):

@@ -33,19 +33,15 @@ class SystemTestCore(unittest.TestCase):
         mock_lib.GetDeviceOSDName.return_value = "Audio System"
         mock_lib.PollDevice.return_value = True
 
-        with patch("subprocess.check_output", spec=True) as mock_subp:
+        # Arguments for the entrypoint
+        from audio_device_controller import audiodevcontroller
 
-            # Arguments for the entrypoint
-            from audio_device_controller import audiodevcontroller
+        sys.argv[1:] = ["-power_on", "--debug"]
+        audiodevcontroller.entry()
 
-            sys.argv[1:] = ["-power_on", "--debug"]
-            audiodevcontroller.entry()
-
-            import cec
-
-            mock_lib.PollDevice.assert_called_with(cec.CECDEVICE_AUDIOSYSTEM)
-            calls = [call(["cec-client", "-t", "p", "-d", "1", "-s"], input=b"tx 45:70:45:00", timeout=30)]
-            mock_subp.assert_has_calls(calls)
+        import cec
+        mock_lib.PollDevice.assert_called_with(cec.CECDEVICE_AUDIOSYSTEM)
+        mock_lib.AudioEnable.assert_called_once_with(True)
 
     @patch("cec.libcec_configuration")
     @patch("cec.ICECAdapter")
@@ -60,16 +56,13 @@ class SystemTestCore(unittest.TestCase):
         mock_lib.GetDeviceOSDName.return_value = "Audio System"
         mock_lib.PollDevice.return_value = True
 
-        with patch("subprocess.check_output", spec=True) as mock_subp:
+        # Arguments for the entrypoint
+        from audio_device_controller import audiodevcontroller
 
-            # Arguments for the entrypoint
-            from audio_device_controller import audiodevcontroller
+        sys.argv[1:] = ["-standby", "--debug"]
+        audiodevcontroller.entry()
 
-            sys.argv[1:] = ["-standby", "--debug"]
-            audiodevcontroller.entry()
-
-            calls = [call(["cec-client", "-t", "p", "-d", "1", "-s"], input=b"standby 5", timeout=30)]
-            mock_subp.assert_has_calls(calls)
+        mock_lib.StandbyDevices.assert_called_once_with()
 
     @patch("cec.libcec_configuration")
     @patch("cec.ICECAdapter")
@@ -86,26 +79,23 @@ class SystemTestCore(unittest.TestCase):
 
         from audio_device_controller.events import ConfigOptions
 
-        with patch("subprocess.check_output", spec=True) as mock_subp:
+        with patch("requests.get") as get_mock:
+            config = ConfigOptions()
+            config.read_from_file()
 
-            with patch("requests.get") as get_mock:
-                config = ConfigOptions()
-                config.read_from_file()
+            # Events: active device, play, inactive device.
+            get_mock.return_value.status_code = config.rest_success_code
+            get_mock.return_value.json.side_effect = [
+                {config.events: [{config.pb_notif: config.pb_notif_active_device},
+                                 {config.pb_notif: config.pb_notif_play},
+                                 {config.pb_notif: config.pb_notif_inactive_device}]},
+                {""}]
 
-                # Events: active device, play, inactive device.
-                get_mock.return_value.status_code = config.rest_success_code
-                get_mock.return_value.json.side_effect = [
-                    {config.events: [{config.pb_notif: config.pb_notif_active_device},
-                                     {config.pb_notif: config.pb_notif_play},
-                                     {config.pb_notif: config.pb_notif_inactive_device}]},
-                    {""}]
+            # Arguments for the entrypoint
+            from audio_device_controller import audiodevcontroller
 
-                # Arguments for the entrypoint
-                from audio_device_controller import audiodevcontroller
+            sys.argv[1:] = ["-event_listener", "-event_timeout=1", "--debug"]
+            audiodevcontroller.entry()
 
-                sys.argv[1:] = ["-event_listener", "-event_timeout=1", "--debug"]
-                audiodevcontroller.entry()
-
-                calls = [call(["cec-client", "-t", "p", "-d", "1", "-s"], input=b"tx 45:70:45:00", timeout=30),
-                         call(["cec-client", "-t", "p", "-d", "1", "-s"], input=b"standby 5", timeout=30)]
-                mock_subp.assert_has_calls(calls)
+            mock_lib.AudioEnable.assert_called_once_with(True)
+            mock_lib.StandbyDevices.assert_called_once_with()
