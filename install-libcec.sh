@@ -3,10 +3,13 @@ set -e
 
 export PATH=$HOME/env/bin:$PATH
 
-# Skip building if libcec is chached from previous runs.
 if [ ! -d "$HOME/env" ]; then
+  mkdir $HOME/env
+fi
 
-  mkdir $HOME/env/
+# Skip building if libcec is chached from previous runs.
+if [ ! -d "$HOME/env/bin" ]; then
+
   mkdir $HOME/src/
 
   # Download and build Python 3.5.2
