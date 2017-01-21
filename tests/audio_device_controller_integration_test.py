@@ -43,7 +43,7 @@ class SystemTestCore(unittest.TestCase):
 
             import cec
 
-            mock_lib.PollDevice.assert_called_with(cec.CECDEVICE_AUDIOSYSTEM)
+            mock_lib.IsPresentDevice.assert_called_with(cec.CECDEVICE_AUDIOSYSTEM)
             calls = [call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"tx 45:70:45:00", timeout=30)]
             mock_subp.assert_has_calls(calls)
 

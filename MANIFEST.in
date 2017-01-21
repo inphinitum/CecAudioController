@@ -1,2 +1,2 @@
-include README.md LICENSE .travis.yml .sample_config.ini .codeclimate.yml
+include README.md LICENSE .travis.yml .config.ini .codeclimate.yml
 recursive-include tests *.py

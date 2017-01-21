@@ -237,7 +237,7 @@ class AudioDeviceControllerCec(AudioDeviceController):
         elif self.cec_lib.Open(adapter) is not True:
             raise CecError("Could not open CEC adapter.")
 
-        if self.cec_lib.PollDevice(cec.CECDEVICE_AUDIOSYSTEM) is False:
+        if self.cec_lib.IsPresentDevice(cec.CECDEVICE_AUDIOSYSTEM) is False:
             raise CecError("cec-client does not find audio device.")
 
     def cleanup(self):
