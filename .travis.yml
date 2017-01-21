@@ -24,9 +24,9 @@ before_install:
 - export PYTHONPATH=$PYTHONPATH:$HOME/env/lib/python3.5/site-packages
 - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/env/lib:$HOME/env/lib/python3.5/site-packages/cec
 
-# before_script:
-# - ls -R $HOME/env/bin
-# - ls -R $HOME/env/lib
+before_script:
+- ls -R $HOME/env/bin
+- ls -R $HOME/env/lib
 
 script:
 - nosetests --with-coverage --cover-erase --cover-package=audio_device_controller
