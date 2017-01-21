@@ -1,24 +1,12 @@
 import sys
 import unittest
-from unittest.mock import call, patch, Mock
+from unittest.mock import patch, Mock
 
 
 class SystemTestCore(unittest.TestCase):
     """
     Integration tests for audio_device_controller.
     """
-
-    @staticmethod
-    def assert_check_output(mock_subp, command):
-        """
-        Auxiliary method.
-        :param mock_subp: Mock object for subprocess
-        :param command: Input bytes literal to be sent to check_output
-        :return: None
-        """
-
-        mock_subp.assert_called_once_with(
-            ["cec-client", "-t", "p", "-d", "1", "-s"], input=command, timeout=30)
 
     @patch("cec.libcec_configuration")
     @patch("cec.ICECAdapter")

@@ -1,9 +1,5 @@
 import unittest
-try:
-    from unittest.mock import patch, Mock
-except ImportError:
-    from mock import patch, Mock
-
+from unittest.mock import patch, Mock
 import audio_device_controller
 
 
@@ -396,23 +392,6 @@ class DeviceControllerCecTest(unittest.TestCase):
         from audio_device_controller.core import AudioDeviceControllerCec
         self.controller = AudioDeviceControllerCec()
         self.controller.initialize()
-
-    def assert_check_output(self, mock_subp, command_list):
-        """
-        Auxiliary method.
-        :param mock_subp: Mock object for subprocess
-        :param command: Input bytes literal to be sent to check_output
-        :return: None
-        """
-        from unittest.mock import call
-
-        calls = []
-
-        for command in command_list:
-            calls.append(call(["cec-client", "-t", "p", "-d", "1", "-s"], input=command, timeout=30))
-
-        mock_subp.assert_has_calls(calls)
-        self.assertTrue(mock_subp.call_count == len(calls))
 
     def tearDown(self):
         """

@@ -13,7 +13,7 @@ class EventHandlerTest(unittest.TestCase):
 
         :return: None
         """
-        import audio_device_controller.events
+        import audio_device_controller
 
         self.mock_session                         = Mock(spec=audio_device_controller.core.Session)
         self.mock_config                          = Mock(spec=audio_device_controller.events.ConfigOptions)
