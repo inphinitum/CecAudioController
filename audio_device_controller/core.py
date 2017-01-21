@@ -210,8 +210,9 @@ class AudioDeviceControllerCec(AudioDeviceController):
     def __init__(self):
         super(AudioDeviceController, self).__init__()
 
-        self.cec_config = None
-        self.cec_lib = None
+        self._cec_config = None
+        self._cec_lib = None
+        self._audio_device = None
 
     def initialize(self):
         """
@@ -222,22 +223,24 @@ class AudioDeviceControllerCec(AudioDeviceController):
         """
         super().initialize()
 
-        self.cec_config = cec.libcec_configuration()
-        self.cec_config.strDeviceName = "audiodevctrl"
-        self.cec_config.cActivateSource = 0
-        self.cec_config.deviceTypes.Add(cec.CEC_DEVICE_TYPE_PLAYBACK_DEVICE)
-        self.cec_config.clientVersion = cec.LIBCEC_VERSION_CURRENT
+        self._cec_config = cec.libcec_configuration()
+        self._cec_config.strDeviceName = "audiodevctrl"
+        self._cec_config.cActivateSource = 0
+        self._cec_config.deviceTypes.Add(cec.CEC_DEVICE_TYPE_PLAYBACK_DEVICE)
+        self._cec_config.clientVersion = cec.LIBCEC_VERSION_CURRENT
 
-        self.cec_lib = cec.ICECAdapter.Create(self.cec_config)
+        self._cec_lib = cec.ICECAdapter.Create(self._cec_config)
 
-        adapter = self.cec_lib.DetectAdapters()[0]
+        adapter = self._cec_lib.DetectAdapters()[0]
 
         if adapter is None:
             raise CecError("CEC adapter not found.")
-        elif self.cec_lib.Open(adapter) is not True:
+        elif self._cec_lib.Open(adapter.strComName) is not True:
             raise CecError("Could not open CEC adapter.")
 
-        if self.cec_lib.IsPresentDevice(cec.CECDEVICE_AUDIOSYSTEM) is False:
+        if self._cec_lib.PollDevice(cec.CECDEVICE_AUDIOSYSTEM) is True:
+            logging.info("Audio device detected: " + self._cec_lib.GetDeviceOSDName(cec.CECDEVICE_AUDIOSYSTEM))
+        else:
             raise CecError("cec-client does not find audio device.")
 
     def cleanup(self):

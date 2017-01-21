@@ -30,8 +30,11 @@ class SystemTestCore(unittest.TestCase):
         mock_config.return_value = mock_config
         mock_lib = Mock()
         mock_adapter.Create.return_value = mock_lib
-        mock_lib.DetectAdapters.return_value = ["adapter"]
+        mock_lib.DetectAdapters.return_value = [Mock()]
+        mock_lib.DetectAdapters.return_value[0].strComName = "adapter"
         mock_lib.Open.return_value = True
+        mock_lib.GetDeviceOSDName.return_value = "Audio System"
+        mock_lib.PollDevice.return_value = True
 
         with patch("subprocess.check_output", spec=True) as mock_subp:
 
@@ -43,7 +46,7 @@ class SystemTestCore(unittest.TestCase):
 
             import cec
 
-            mock_lib.IsPresentDevice.assert_called_with(cec.CECDEVICE_AUDIOSYSTEM)
+            mock_lib.PollDevice.assert_called_with(cec.CECDEVICE_AUDIOSYSTEM)
             calls = [call(["cec-client", "-t", "p", "-s", "-d", "1"], input=b"tx 45:70:45:00", timeout=30)]
             mock_subp.assert_has_calls(calls)
 
@@ -54,8 +57,11 @@ class SystemTestCore(unittest.TestCase):
         mock_config.return_value = mock_config
         mock_lib = Mock()
         mock_adapter.Create.return_value = mock_lib
-        mock_lib.DetectAdapters.return_value = ["adapter"]
+        mock_lib.DetectAdapters.return_value = [Mock()]
+        mock_lib.DetectAdapters.return_value[0].strComName = "adapter"
         mock_lib.Open.return_value = True
+        mock_lib.GetDeviceOSDName.return_value = "Audio System"
+        mock_lib.PollDevice.return_value = True
 
         with patch("subprocess.check_output", spec=True) as mock_subp:
 
@@ -75,8 +81,11 @@ class SystemTestCore(unittest.TestCase):
         mock_config.return_value = mock_config
         mock_lib = Mock()
         mock_adapter.Create.return_value = mock_lib
-        mock_lib.DetectAdapters.return_value = ["adapter"]
+        mock_lib.DetectAdapters.return_value = [Mock()]
+        mock_lib.DetectAdapters.return_value[0].strComName = "adapter"
         mock_lib.Open.return_value = True
+        mock_lib.GetDeviceOSDName.return_value = "Audio System"
+        mock_lib.PollDevice.return_value = True
 
         from audio_device_controller.events import ConfigOptions
 

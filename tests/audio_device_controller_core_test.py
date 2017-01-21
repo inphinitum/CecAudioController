@@ -387,8 +387,11 @@ class DeviceControllerCecTest(unittest.TestCase):
         mock_config.return_value = mock_config
         self.mock_lib = Mock()
         mock_adapter.Create.return_value = self.mock_lib
-        self.mock_lib.DetectAdapters.return_value = ["adapter"]
+        self.mock_lib.DetectAdapters.return_value = [Mock()]
+        self.mock_lib.DetectAdapters.return_value[0].strComName = "adapter"
         self.mock_lib.Open.return_value = True
+        self.mock_lib.GetDeviceOSDName.return_value = "Audio System"
+        self.mock_lib.PollDevice.return_value = True
 
         from audio_device_controller.core import AudioDeviceControllerCec
         self.controller = AudioDeviceControllerCec()
@@ -485,8 +488,10 @@ class DeviceControllerInitCleanupTest(unittest.TestCase):
         mock_lib = Mock()
 
         mock_adapter.Create.return_value = mock_lib
-        mock_lib.DetectAdapters.return_value = ["adapter"]
+        mock_lib.DetectAdapters.return_value = [Mock()]
+        mock_lib.DetectAdapters.return_value[0].strComName = "adapter"
         mock_lib.Open.return_value = True
+        mock_lib.GetDeviceOSDName.return_value = "Audio System"
         mock_lib.PollDevice.return_value = True
 
         # Control the cec-client is invoked properly, audio device searched and found
@@ -502,9 +507,9 @@ class DeviceControllerInitCleanupTest(unittest.TestCase):
         self.assertTrue(mock_config.clientVersion is cec.LIBCEC_VERSION_CURRENT)
 
         mock_adapter.Create.assert_called_once_with(mock_config)
-        mock_lib.Open.assert_called_once_with(mock_lib.DetectAdapters.return_value[0])
+        mock_lib.Open.assert_called_once_with(mock_lib.DetectAdapters.return_value[0].strComName)
 
-        mock_lib.IsPresentDevice.assert_called_once_with(cec.CECDEVICE_AUDIOSYSTEM)
+        mock_lib.PollDevice.assert_called_once_with(cec.CECDEVICE_AUDIOSYSTEM)
 
     @patch("cec.libcec_configuration")
     @patch("cec.ICECAdapter")
@@ -544,9 +549,11 @@ class DeviceControllerInitCleanupTest(unittest.TestCase):
         mock_lib = Mock()
 
         mock_adapter.Create.return_value = mock_lib
-        mock_lib.DetectAdapters.return_value = ["device"]
+        mock_lib.DetectAdapters.return_value = [Mock()]
+        mock_lib.DetectAdapters.return_value[0].strComName = "adapter"
         mock_lib.Open.return_value = True
-        mock_lib.IsPresentDevice.return_value = False
+        mock_lib.GetDeviceOSDName.return_value = "Audio System"
+        mock_lib.PollDevice.return_value = False
 
         from audio_device_controller.core import AudioDeviceControllerCec, CecError
         with self.assertRaises(CecError) as context:
