@@ -1,9 +1,5 @@
 import unittest
-try:
-    from unittest.mock import patch, Mock
-except ImportError:
-    from mock import patch, Mock
-
+from unittest.mock import patch, Mock
 import audio_device_controller
 
 
@@ -397,23 +393,6 @@ class DeviceControllerCecTest(unittest.TestCase):
         self.controller = AudioDeviceControllerCec()
         self.controller.initialize()
 
-    def assert_check_output(self, mock_subp, command_list):
-        """
-        Auxiliary method.
-        :param mock_subp: Mock object for subprocess
-        :param command: Input bytes literal to be sent to check_output
-        :return: None
-        """
-        from unittest.mock import call
-
-        calls = []
-
-        for command in command_list:
-            calls.append(call(["cec-client", "-t", "p", "-d", "1", "-s"], input=command, timeout=30))
-
-        mock_subp.assert_has_calls(calls)
-        self.assertTrue(mock_subp.call_count == len(calls))
-
     def tearDown(self):
         """
         Undo setUp, leave things clean.
@@ -430,50 +409,56 @@ class DeviceControllerCecTest(unittest.TestCase):
         :return: None
         """
 
-        with patch("subprocess.check_output", spec=True) as mock_subp:
-            mock_subp.return_value = b""
+        self.controller.power_on()
+        self.mock_lib.AudioEnable.assert_called_once_with(True)
 
-            self.controller.power_on()
-            self.assert_check_output(mock_subp, [b"tx 45:70:45:00"])
-
-    def test_power_on_cec_fail(self):
-        """
-        Test single command power_on with failure to communicate with cec.
-
-        :return: None
-        """
-
-        # Control that the command to power on the audio device is sent, and timer not cancelled
-        from audio_device_controller.core import CecError
-        from subprocess import TimeoutExpired
-
-        with patch("subprocess.check_output", spec=True) as mock_subp:
-            mock_subp.side_effect = TimeoutExpired("", 15)
-
-            with self.assertRaises(CecError) as context:
-                self.controller.power_on()
-
-            self.assert_check_output(mock_subp, [b"tx 45:70:45:00"])
-            self.assertTrue("cec-client unresponsive." in context.exception.message)
-
-    def test_standby(self):
+    @patch("cec.ICECAdapter")
+    def test_standby(self, mock_lib):
         """
         Test single command standby.
 
         :return: None
         """
 
-        with patch("subprocess.check_output", spec=True) as mock_subp:
-            mock_subp.return_value = b""
-
-            self.controller.standby()
-            self.assert_check_output(mock_subp, [b"standby 5"])
+        self.controller.standby()
+        self.mock_lib.StandbyDevices.assert_called_once_with()
 
 
 class DeviceControllerInitCleanupTest(unittest.TestCase):
     """
     Test class to test basic initialization and cleanup.
     """
+
+    @patch("cec.libcec_configuration")
+    @patch("cec.ICECAdapter")
+    def test_initialize_OK(self, mock_adapter, mock_config):
+        """
+        Boilerplate code to initialize the controller.
+
+        :return: None
+        """
+
+        mock_config.return_value = mock_config
+        mock_lib = Mock()
+
+        mock_adapter.Create.return_value = mock_lib
+        mock_lib.DetectAdapters.return_value = [Mock()]
+        mock_lib.DetectAdapters.return_value[0].strComName = "adapter"
+        mock_lib.Open.return_value = True
+        mock_lib.GetDeviceOSDName.return_value = "Audio System"
+        mock_lib.PollDevice.return_value = True
+
+        # Control the cec-client is invoked properly, audio device searched and found
+        from audio_device_controller.core import AudioDeviceControllerCec
+
+        self.controller = AudioDeviceControllerCec()
+        self.controller.initialize()
+
+        import cec
+        self.assertTrue(mock_config.strDeviceName is "audiodevctrl")
+        self.assertTrue(mock_config.cActivateSource is 0)
+        mock_config.deviceTypes.Add.assert_called_once_with(cec.CEC_DEVICE_TYPE_PLAYBACK_DEVICE)
+        self.assertTrue(mock_config.clientVersion is cec.LIBCEC_VERSION_CURRENT)
 
     @patch("cec.libcec_configuration")
     @patch("cec.ICECAdapter")
@@ -525,7 +510,7 @@ class DeviceControllerInitCleanupTest(unittest.TestCase):
 
         mock_adapter.Create.return_value = mock_lib
         mock_lib.DetectAdapters.return_value = [None]
-
+    
         # Adapter is not present.
         from audio_device_controller.core import AudioDeviceControllerCec, CecError
         with self.assertRaises(CecError) as context:
@@ -574,9 +559,8 @@ class DeviceControllerInitCleanupTest(unittest.TestCase):
         with self.assertRaises(CecError) as context:
             self.controller = AudioDeviceControllerCec()
             self.controller.initialize()
-
+            
             import cec
-
             mock_adapter.Create.assert_called_once_with(mock_config)
             mock_lib.Open.assert_called_once_with(mock_lib.DetectAdapters.return_value[0])
             mock_lib.IsPresentDevice.assert_called_once_with(cec.CECDEVICE_AUDIOSYSTEM)
