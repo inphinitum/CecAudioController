@@ -206,7 +206,6 @@ class AudioDeviceControllerCec(AudioDeviceController):
 
         self._cec_config = None
         self._cec_lib = None
-        self._audio_device = None
 
     def initialize(self):
         """
@@ -275,7 +274,7 @@ class AudioDeviceControllerCec(AudioDeviceController):
         # From logical address 4 (player) to 5 (audio)
         # System audio mode request opcode: 0x70
         # Physical address of source to be used: 4.5.0.0
-        self.__cec_command(b"tx 45:70:45:00")
+        self._cec_lib.AudioEnable(True)
 
     def standby(self):
         """
@@ -288,22 +287,4 @@ class AudioDeviceControllerCec(AudioDeviceController):
         """
 
         super().standby()
-        self.__cec_command(b"standby 5")
-
-    @staticmethod
-    def __cec_command(command):
-        """
-        Sends the given command to the cec process (Popen).
-
-        Raises:
-            CecError -- in case cec-client is unresponsive.
-        """
-        import subprocess
-
-        try:
-            return subprocess.check_output(["cec-client", "-t", "p", "-d", "1", "-s"], input=command, timeout=30)
-
-        except OSError:
-            raise CecError("cec-client not found.")
-        except subprocess.TimeoutExpired:
-            raise CecError("cec-client unresponsive.")
+        self._cec_lib.StandbyDevices()
