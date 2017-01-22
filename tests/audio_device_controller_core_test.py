@@ -460,6 +460,37 @@ class DeviceControllerInitCleanupTest(unittest.TestCase):
         mock_config.deviceTypes.Add.assert_called_once_with(cec.CEC_DEVICE_TYPE_PLAYBACK_DEVICE)
         self.assertTrue(mock_config.clientVersion is cec.LIBCEC_VERSION_CURRENT)
 
+    @patch("cec.libcec_configuration")
+    @patch("cec.ICECAdapter")
+    def test_initialize_OK(self, mock_adapter, mock_config):
+        """
+        Boilerplate code to initialize the controller.
+
+        :return: None
+        """
+
+        mock_config.return_value = mock_config
+        mock_lib = Mock()
+
+        mock_adapter.Create.return_value = mock_lib
+        mock_lib.DetectAdapters.return_value = [Mock()]
+        mock_lib.DetectAdapters.return_value[0].strComName = "adapter"
+        mock_lib.Open.return_value = True
+        mock_lib.GetDeviceOSDName.return_value = "Audio System"
+        mock_lib.PollDevice.return_value = True
+
+        # Control the cec-client is invoked properly, audio device searched and found
+        from audio_device_controller.core import AudioDeviceControllerCec
+
+        self.controller = AudioDeviceControllerCec()
+        self.controller.initialize()
+
+        import cec
+        self.assertTrue(mock_config.strDeviceName is "audiodevctrl")
+        self.assertTrue(mock_config.cActivateSource is 0)
+        mock_config.deviceTypes.Add.assert_called_once_with(cec.CEC_DEVICE_TYPE_PLAYBACK_DEVICE)
+        self.assertTrue(mock_config.clientVersion is cec.LIBCEC_VERSION_CURRENT)
+
         mock_adapter.Create.assert_called_once_with(mock_config)
         mock_lib.Open.assert_called_once_with(mock_lib.DetectAdapters.return_value[0].strComName)
 
@@ -479,7 +510,7 @@ class DeviceControllerInitCleanupTest(unittest.TestCase):
 
         mock_adapter.Create.return_value = mock_lib
         mock_lib.DetectAdapters.return_value = [None]
-
+    
         # Adapter is not present.
         from audio_device_controller.core import AudioDeviceControllerCec, CecError
         with self.assertRaises(CecError) as context:
@@ -528,9 +559,8 @@ class DeviceControllerInitCleanupTest(unittest.TestCase):
         with self.assertRaises(CecError) as context:
             self.controller = AudioDeviceControllerCec()
             self.controller.initialize()
-
+            
             import cec
-
             mock_adapter.Create.assert_called_once_with(mock_config)
             mock_lib.Open.assert_called_once_with(mock_lib.DetectAdapters.return_value[0])
             mock_lib.IsPresentDevice.assert_called_once_with(cec.CECDEVICE_AUDIOSYSTEM)

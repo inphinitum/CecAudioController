@@ -7,7 +7,7 @@ class SystemTestCore(unittest.TestCase):
     """
     Integration tests for audio_device_controller.
     """
-
+    
     @patch("cec.libcec_configuration")
     @patch("cec.ICECAdapter")
     def test_play(self, mock_adapter, mock_config):
@@ -84,6 +84,6 @@ class SystemTestCore(unittest.TestCase):
 
             sys.argv[1:] = ["-event_listener", "-event_timeout=1", "--debug"]
             audiodevcontroller.entry()
-
+        
             mock_lib.AudioEnable.assert_called_once_with(True)
             mock_lib.StandbyDevices.assert_called_once_with()
